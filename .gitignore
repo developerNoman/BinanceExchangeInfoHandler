@@ -1,0 +1,4 @@
+cmake-modules/
+build/
+config.json
+Dockerfile
