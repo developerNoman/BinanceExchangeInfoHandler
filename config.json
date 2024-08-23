@@ -1,0 +1,18 @@
+{
+    "logging": {
+        "level": "trace",
+        "file": true,
+        "console": true
+    },
+    "exchange_base_url": {
+        "spotBase": "api.binance.com",
+        "usdtFutureBase": "fapi.binance.com",
+        "coinFutureBase": "dapi.binance.com"
+    },
+    "exchange_endpoints": {
+        "spotTarget": "/api/v3/exchangeInfo",
+        "usdtFutureTarget": "/fapi/v1/exchangeInfo",
+        "coinFutureTarget": "/dapi/v1/exchangeInfo"
+    },
+    "request_interval": 60
+ }
