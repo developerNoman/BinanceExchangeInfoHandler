@@ -13,7 +13,9 @@ include(cmake-modules/spdlog.cmake)
 include(cmake-modules/rapidjson.cmake)
 include(cmake-modules/boost.cmake)
 
-add_executable(main app/request.cpp)
-
+add_executable(main
+    app/data.cpp
+    app/main.cpp
+)
 target_link_libraries(main ${OPENSSL_LIBRARIES}
 )
