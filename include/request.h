@@ -48,6 +48,7 @@ void parseSymbols(const std::string& responseBody, MapType& symbolsMap) {
 
     if (!fullData.IsObject() || !fullData.HasMember("symbols") || !fullData["symbols"].IsArray()) {
         std::cerr << "Invalid JSON format or missing symbols array." << std::endl;
+        std::cerr << "Response Body: " << responseBody << std::endl;
         return;
     }
 
@@ -68,7 +69,6 @@ void parseSymbols(const std::string& responseBody, MapType& symbolsMap) {
         symbolsMap[info.symbol] = info;
     }
 }
-
 void fail(beast::error_code ec, char const* what);
 void load_root_certificates(boost::asio::ssl::context& ctx);
 
