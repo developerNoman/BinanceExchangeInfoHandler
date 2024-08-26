@@ -14,14 +14,8 @@ include(cmake-modules/spdlog.cmake)
 include(cmake-modules/rapidjson.cmake)
 include(cmake-modules/boost.cmake)
 
-# add_library(binance_lib
-#     app/data.cpp
-# )
-
-# target_link_libraries(binance_lib ${OPENSSL_LIBRARIES})
-
 add_executable(main app/data.cpp)
 target_link_libraries(main PRIVATE ${OPENSSL_LIBRARIES})
 
 add_subdirectory(UnitTest)
-# add_subdirectory(BenchMarks)
+add_subdirectory(BenchMarks)
