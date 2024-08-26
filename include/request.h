@@ -35,11 +35,11 @@ struct symbolInfo {
 // Define the exchangeInfo structure
 class exchangeInfo {
 public:
-    std::map<std::string, symbolInfo> spotSymbols;
-    std::map<std::string, symbolInfo> usdSymbols;
-    std::map<std::string, symbolInfo> coinSymbols;
+    std::map<std::string, symbolInfo> spotMarketSymbols;
+    std::map<std::string, symbolInfo> usdMarketSymbols;
+    std::map<std::string, symbolInfo> coinMarketSymbols;
 };
-extern exchangeInfo binanceExchange;
+extern exchangeInfo myExchangeData;
 
 template<typename MapType>
 void parseSymbols(const std::string& responseBody, MapType& symbolsMap) {
