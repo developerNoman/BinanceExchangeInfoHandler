@@ -55,6 +55,16 @@ void readQueryFile(const string &queryFile, rapidjson::Document &doc1)
     fclose(fp);
 }
 
+//BenchMark to read query file
+static void BenchMark_ReadQuery(benchmark::State& state) {
+    rapidjson::Document doc;
+    std::string queryFile = "query.json";
+    for (auto _ : state) {
+        readQueryFile(queryFile, doc);
+    }
+}
+BENCHMARK(BenchMark_ReadQuery);
+
 const std::string dummyResponse = R"({
     "symbols": [
         {
@@ -79,20 +89,12 @@ const std::string dummyResponse = R"({
 })";
 
 
-//BenchMark to read query file
-static void BenchMark_ReadQuery(benchmark::State& state) {
-    rapidjson::Document doc;
-    std::string queryFile = "/home/noman-shafique/Training/Tasks/BinanceExchangeInfoHandler/query.json";
-    for (auto _ : state) {
-        readQueryFile(queryFile, doc);
-    }
-}
-BENCHMARK(BenchMark_ReadQuery);
+
 
 //BenchMark to read config file
 static void BenchMark_ReadConfig(benchmark::State& state) {
     rapidjson::Document doc;
-    std::string configFile = "/home/noman-shafique/Training/Tasks/BinanceExchangeInfoHandler/config.json";
+    std::string configFile = "config.json";
     for (auto _ : state) {
         readConfig(configFile, doc);
     }
