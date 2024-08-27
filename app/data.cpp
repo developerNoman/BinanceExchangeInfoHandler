@@ -1,5 +1,4 @@
 #include "request.h"
-#include <set>
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
 #include "boost/asio.hpp"
@@ -26,6 +25,7 @@
 #include <map>
 #include <iostream>
 #include <fstream>
+#include <set>
 
 using namespace std;
 namespace net = boost::asio;
