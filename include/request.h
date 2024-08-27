@@ -74,11 +74,22 @@ void parseSymbols(std::string& responseBody,  std::map<std::string, symbolInfo> 
             continue;
         }
 
-        if (symbol.HasMember("quoteAsset") && symbol["quoteAsset"].IsString()) {
-            info.quoteAsset = symbol["quoteAsset"].GetString();
+        // if (symbol.HasMember("quoteAsset") && symbol["quoteAsset"].IsString()) {
+        //     info.quoteAsset = symbol["quoteAsset"].GetString();
+        // } else {
+        //     // std::cerr << "Missing or invalid 'quoteAsset' field in symbol: " << info.symbol << std::endl;
+        //     // continue;
+        //     info.quoteAsset = "";
+        // }
+        if (symbol.HasMember("quoteAsset")) {
+            if (symbol["quoteAsset"].IsString()) {
+                info.quoteAsset = symbol["quoteAsset"].GetString();
+            } else {
+                info.quoteAsset = ""; // Handle unexpected type by setting to empty string
+                std::cerr << "Invalid 'quoteAsset' field in symbol: " << info.symbol << std::endl;
+            }
         } else {
-            std::cerr << "Missing or invalid 'quoteAsset' field in symbol: " << info.symbol << std::endl;
-            continue;
+            info.quoteAsset = ""; // Handle missing field gracefully
         }
         if (symbol.HasMember("status") && symbol["status"].IsString()) {
             info.status = symbol["status"].GetString();
@@ -108,6 +119,8 @@ void parseSymbols(std::string& responseBody,  std::map<std::string, symbolInfo> 
         (*symbolsMap)[info.symbol] = info;
     }
 }
+
+
 
 void fail(beast::error_code ec, char const* what);
 void load_root_certificates(boost::asio::ssl::context& ctx);
