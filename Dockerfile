@@ -1,4 +1,4 @@
-FROM gcc:12
+FROM ubuntu:latest
 
 WORKDIR /app
 RUN apt-get update && apt-get install -y \
@@ -9,14 +9,4 @@ RUN apt-get update && apt-get install -y \
 
 RUN git clone --branch v1.1.0 https://github.com/Tencent/rapidjson.git /app/rapidjson
 
-COPY . /app/
-
-RUN mkdir -p build && rm -rf build/*
-
-WORKDIR /app/build
-
-
-RUN cmake -DRAPIDJSON_INCLUDE_DIR=/app/rapidjson/include .. && make VERBOSE=1
-
-CMD ["./main"]
 
