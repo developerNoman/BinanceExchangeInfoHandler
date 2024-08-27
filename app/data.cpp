@@ -38,6 +38,10 @@ string spotBase, usdtFutureBase, coinFutureBase;
 string spotTarget, usdtFutureTarget, coinFutureTarget;
 int request_interval;
 
+map<string, symbolInfo> symbolsMap;
+//object of class is created
+exchangeInfo binanceExchange;
+
 //method to read the config.json file and store in variables
 void readConfig(string configFile, rapidjson::Document &doc1) {
 
@@ -63,29 +67,19 @@ void readConfig(string configFile, rapidjson::Document &doc1) {
 }
 
 //for passing and storing the spot endpoint data in the map 
-map<string, symbolInfo> spotSymbols;
 void spotData(net::io_context &ioc, ssl::context &ctx, const string &spotBaseUrl, const string &spotEndpoint) {
     
-    fetchData(spotBaseUrl, spotEndpoint, spotSymbols, ioc, ctx);
-    binanceExchange.spotSymbols = spotSymbols;
+    fetchData(spotBaseUrl, spotEndpoint, symbolsMap, ioc, ctx);
 }
 
 //for passing and storing the usd Future endpoint data in the map
-map<string, symbolInfo> usdSymbols;
 void usdFutureData(net::io_context &ioc, ssl::context &ctx, const string &usdFutureBaseUrl, const string &usdFutureEndpoint) {
-   
-    fetchData(usdFutureBaseUrl, usdFutureEndpoint, usdSymbols, ioc, ctx);
-         binanceExchange.usdSymbols = usdSymbols;
+    fetchData(usdFutureBaseUrl, usdFutureEndpoint, symbolsMap, ioc, ctx);
 }
 
-
-//for passing and storing the coin endpoint data in the map
-map<string, symbolInfo> coinSymbols;
+//for passing and storing the coin future endpoint data in the map 
 void coinFutureData(net::io_context &ioc, ssl::context &ctx, const string &coinFutureBaseUrl, const string &coinFutureEndpoint) {
- 
-    fetchData(coinFutureBaseUrl, coinFutureEndpoint, coinSymbols, ioc, ctx);
-        binanceExchange.coinSymbols = coinSymbols;
-
+    fetchData(coinFutureBaseUrl, coinFutureEndpoint, symbolsMap, ioc, ctx);
 }
 
 //function to display the extracted data from market
@@ -98,8 +92,6 @@ void display(const string &marketType, const string &instrumentName, const symbo
 
 }
 
-//object of class is created
-exchangeInfo binanceExchange;
 
 void fail(beast::error_code ec, char const *what)
 {
@@ -306,7 +298,7 @@ void readQueryFileContinuously(const string &queryFile, net::io_context &ioc)
         readQueryFile(queryFile, doc);
         processQueries(doc);
 
-        this_thread::sleep_for(chrono::seconds(60)); 
+        this_thread::sleep_for(chrono::seconds(2)); 
     }
 }
 
@@ -352,7 +344,7 @@ int main()
     auto json_sink = make_shared<spdlog::sinks::ostream_sink_mt>(json_stream);
     auto logger = make_shared<spdlog::logger>("logger", spdlog::sinks_init_list{console_sink, json_sink});
     
-    logger->set_level(spdlog::level::trace); 
+    logger->set_level(spdlog::level::from_str(logLevel)); 
     spdlog::set_default_logger(logger);
     spdlog::flush_every(chrono::seconds(1));
 
