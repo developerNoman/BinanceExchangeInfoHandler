@@ -1,8 +1,6 @@
 # BinanceExchangeInfoHandler
 <p>This project is to develop a C++ Application that interacts with the Binance cryptocurrency exchange API, retrieves different market information including spot, usd futures and coin future data from the binance</p>
 
-sudo docker run -v ./:/app --name binan -it exchangedatahandle
-
 # Build And Run:
 
 1. Clone the binance exchange handler repository: `git clone https://github.com/developerNoman/BinanceExchangeInfoHandler`
