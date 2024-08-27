@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(main)
+project(BinanceExchangeHandler)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -14,8 +14,8 @@ include(cmake-modules/spdlog.cmake)
 include(cmake-modules/rapidjson.cmake)
 include(cmake-modules/boost.cmake)
 
-add_executable(main app/data.cpp)
-target_link_libraries(main PRIVATE ${OPENSSL_LIBRARIES})
+add_executable(exchangeHandler app/data.cpp)
+target_link_libraries(exchangeHandler PRIVATE ${OPENSSL_LIBRARIES})
 
 add_subdirectory(UnitTest)
 add_subdirectory(BenchMarks)
