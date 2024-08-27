@@ -73,14 +73,6 @@ void parseSymbols(std::string& responseBody,  std::map<std::string, symbolInfo> 
             std::cerr << "Missing or invalid 'symbol' field in a symbol object." << std::endl;
             continue;
         }
-
-        // if (symbol.HasMember("quoteAsset") && symbol["quoteAsset"].IsString()) {
-        //     info.quoteAsset = symbol["quoteAsset"].GetString();
-        // } else {
-        //     // std::cerr << "Missing or invalid 'quoteAsset' field in symbol: " << info.symbol << std::endl;
-        //     // continue;
-        //     info.quoteAsset = "";
-        // }
         if (symbol.HasMember("quoteAsset")) {
             if (symbol["quoteAsset"].IsString()) {
                 info.quoteAsset = symbol["quoteAsset"].GetString();
@@ -89,7 +81,7 @@ void parseSymbols(std::string& responseBody,  std::map<std::string, symbolInfo> 
                 std::cerr << "Invalid 'quoteAsset' field in symbol: " << info.symbol << std::endl;
             }
         } else {
-            info.quoteAsset = ""; // Handle missing field gracefully
+            info.quoteAsset = ""; // Handle missing field
         }
         if (symbol.HasMember("status") && symbol["status"].IsString()) {
             info.status = symbol["status"].GetString();
