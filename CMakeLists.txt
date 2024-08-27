@@ -17,5 +17,5 @@ include(cmake-modules/boost.cmake)
 add_executable(main app/data.cpp)
 target_link_libraries(main PRIVATE ${OPENSSL_LIBRARIES})
 
-# add_subdirectory(UnitTest)
-# add_subdirectory(BenchMarks)
+add_subdirectory(UnitTest)
+add_subdirectory(BenchMarks)
