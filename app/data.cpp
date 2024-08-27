@@ -16,12 +16,12 @@
 #include <iostream>
 #include <fstream>
 #include <spdlog/spdlog.h>
-#include <unordered_map>            // For std::unordered_map (assuming lastSeenIds is an unordered_map)
-#include "rapidjson/document.h"     // For RapidJSON's Document class
-#include "rapidjson/writer.h"       // For RapidJSON's Writer class
-#include "rapidjson/stringbuffer.h" // For RapidJSON's StringBuffer class
-#include "rapidjson/istreamwrapper.h" // For RapidJSON's IStreamWrapper class
-#include "rapidjson/ostreamwrapper.h" // For RapidJSON's OStreamWrapper class
+#include <unordered_map>           
+#include "rapidjson/document.h"    
+#include "rapidjson/writer.h"      
+#include "rapidjson/stringbuffer.h" 
+#include "rapidjson/istreamwrapper.h" 
+#include "rapidjson/ostreamwrapper.h" 
 #include <spdlog/spdlog.h>  
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -38,6 +38,7 @@ string spotBase, usdtFutureBase, coinFutureBase;
 string spotTarget, usdtFutureTarget, coinFutureTarget;
 int request_interval;
 
+//method to read the config.json file and store in variables
 void readConfig(string configFile, rapidjson::Document &doc1) {
 
     FILE* fp = fopen(configFile.c_str(), "r");
@@ -61,6 +62,7 @@ void readConfig(string configFile, rapidjson::Document &doc1) {
     fclose(fp);
 }
 
+//for passing and storing the spot endpoint data in the map 
 map<string, symbolInfo> spotSymbols;
 void spotData(net::io_context &ioc, ssl::context &ctx, const string &spotBaseUrl, const string &spotEndpoint) {
     
@@ -68,6 +70,7 @@ void spotData(net::io_context &ioc, ssl::context &ctx, const string &spotBaseUrl
     binanceExchange.spotSymbols = spotSymbols;
 }
 
+//for passing and storing the usd Future endpoint data in the map
 map<string, symbolInfo> usdSymbols;
 void usdFutureData(net::io_context &ioc, ssl::context &ctx, const string &usdFutureBaseUrl, const string &usdFutureEndpoint) {
    
@@ -75,6 +78,8 @@ void usdFutureData(net::io_context &ioc, ssl::context &ctx, const string &usdFut
          binanceExchange.usdSymbols = usdSymbols;
 }
 
+
+//for passing and storing the coin endpoint data in the map
 map<string, symbolInfo> coinSymbols;
 void coinFutureData(net::io_context &ioc, ssl::context &ctx, const string &coinFutureBaseUrl, const string &coinFutureEndpoint) {
  
@@ -83,6 +88,7 @@ void coinFutureData(net::io_context &ioc, ssl::context &ctx, const string &coinF
 
 }
 
+//function to display the extracted data from market
 void display(const string &marketType, const string &instrumentName, const symbolInfo &symbolInfo) {
     spdlog::info("{} Market - Symbol: {}", marketType, symbolInfo.symbol);
     spdlog::info("Quote Asset: {}", symbolInfo.quoteAsset);
@@ -92,6 +98,7 @@ void display(const string &marketType, const string &instrumentName, const symbo
 
 }
 
+//object of class is created
 exchangeInfo binanceExchange;
 
 void fail(beast::error_code ec, char const *what)
@@ -99,6 +106,7 @@ void fail(beast::error_code ec, char const *what)
     cerr << what << ": " << ec.message() << "\n";
 }
 
+//function to make http calls by providing the host and target points
 void fetchData(const string &baseUrl, const string &endpoint, map<string, symbolInfo> &symbolsMap, net::io_context &ioc, ssl::context &ctx)
 {
     spdlog::info("Fetching data from baseUrl: {}, endpoint: {}", baseUrl, endpoint);
@@ -110,8 +118,11 @@ void fetchData(const string &baseUrl, const string &endpoint, map<string, symbol
     auto sessionPtr = make_shared<session>(net::make_strand(ioc), ctx);
     sessionPtr->run(host, port, target, version);
     }
+
+//map to store previous ids    
 map<string, int> lastSeenIds;
 
+//method to process the queries from the query file
 void processQueries(const rapidjson::Document &doc)
 {
     if (!doc.HasMember("query") || !doc["query"].IsArray()) {
@@ -119,7 +130,7 @@ void processQueries(const rapidjson::Document &doc)
         return;
     }
 
-    // Create a new document to store the results
+    // Created a new document to store the results
     rapidjson::Document resultDoc;
     resultDoc.SetObject();
     rapidjson::Document::AllocatorType& allocator = resultDoc.GetAllocator();
@@ -137,7 +148,9 @@ void processQueries(const rapidjson::Document &doc)
     }
 
     const rapidjson::Value &queries = doc["query"];
-    for (int i = 0; i < queries.Size(); ++i)
+
+    int length=queries.Size();
+    for (int i = 0; i < length; ++i)
     {
         const rapidjson::Value &query = queries[i];
 
@@ -251,7 +264,7 @@ void processQueries(const rapidjson::Document &doc)
 
     resultDoc.RemoveMember("results");
     resultDoc.AddMember("results", resultArray, allocator);
-    std::ofstream ofs("/home/noman-shafique/Training/Tasks/BinanceExchangeInfoHandler/answers.json");
+    std::ofstream ofs("answers.json");
     if (!ofs.is_open()) {
         spdlog::error("Failed to open answer.json for writing!");
         return;
@@ -264,6 +277,7 @@ void processQueries(const rapidjson::Document &doc)
     spdlog::info("Processed queries and appended results to file.");
 }
 
+//reading the query.json file
 void readQueryFile(const string &queryFile, rapidjson::Document &doc1)
 {
     FILE *fp = fopen(queryFile.c_str(), "r");
@@ -283,8 +297,7 @@ void readQueryFile(const string &queryFile, rapidjson::Document &doc1)
     fclose(fp);
 }
 
-
-
+//read the process the query continuously
 void readQueryFileContinuously(const string &queryFile, net::io_context &ioc)
 {
     while (true)
@@ -315,6 +328,7 @@ void fetchCoinFutureData(net::io_context &ioc, ssl::context &ctx, const string &
 
 }
 
+//the function which call all endpoints function and then use this function (fetchEndpoints) as a callBack Function in timer
 void fetchEndpoints(const boost::system::error_code& /*e*/, boost::asio::steady_timer* t, boost::asio::io_context& ioc, boost::asio::ssl::context& ctx){
     fetchSpotData(ioc, ctx, ref(spotBase), ref(spotTarget));
     fetchUsdFutureData(ioc, ctx, ref(usdtFutureBase), ref(usdtFutureTarget));
@@ -329,7 +343,7 @@ int main()
 {
 
     rapidjson::Document doc1;
-    readConfig("/home/noman-shafique/Training/Tasks/BinanceExchangeInfoHandler/config.json", doc1);
+    readConfig("config.json", doc1);
     spdlog::info("Configuration loaded: spotBase={}, usdtFutureBase={}, coinFutureBase={}",
         spotBase, usdtFutureBase, coinFutureBase);
 
@@ -354,7 +368,7 @@ int main()
     t.async_wait(boost::bind(fetchEndpoints, boost::asio::placeholders::error, &t, ref(ioc), ref(ctx)));
 
 
-    thread queryThread(readQueryFileContinuously, "/home/noman-shafique/Training/Tasks/BinanceExchangeInfoHandler/query.json", ref(ioc));
+    thread queryThread(readQueryFileContinuously, "query.json", ref(ioc));
     ioc.run();
 
     queryThread.join();
