@@ -114,24 +114,21 @@ void fetchData(const string &baseUrl, const string &endpoint, map<string, Market
     }
 
 //map to store previous ids    
-map<string, int> lastSeenIds;
+map<string, map<int, int>> idOccurrences;
 
 //method to process the queries from the query file
-void processQueries(const rapidjson::Document &doc)
-{
+void processQueries(const rapidjson::Document &doc) {
     if (!doc.HasMember("query") || !doc["query"].IsArray()) {
         spdlog::error("Invalid JSON format in query file!");
         return;
     }
 
-    // Created a new document to store the results
     rapidjson::Document resultDoc;
     resultDoc.SetObject();
     rapidjson::Document::AllocatorType& allocator = resultDoc.GetAllocator();
 
     rapidjson::Value resultArray(rapidjson::kArrayType);
 
-    // Try to open and parse the existing file to append data
     ifstream ifs("answers.json");
     if (ifs.is_open()) {
         rapidjson::IStreamWrapper isw(ifs);
@@ -144,118 +141,119 @@ void processQueries(const rapidjson::Document &doc)
 
     const rapidjson::Value &queries = doc["query"];
 
-    int length=queries.Size();
+    int length = queries.Size();
     myMutex.lock();
-    for (int i = 0; i < length; ++i)
-    {
+    for (int i = 0; i < length; ++i) {
         const rapidjson::Value &query = queries[i];
 
-        if (!query.HasMember("query_type") || !query.HasMember("market_type") || !query.HasMember("instrument_name"))
-        {
+        if (!query.HasMember("query_type") || !query.HasMember("market_type") || !query.HasMember("instrument_name")) {
             spdlog::warn("Missing query details in query index: {}", i);
             continue;
         }
 
         int queryID = query["id"].GetInt();
         string marketType = query["market_type"].GetString();
+
+        // Update occurrences map
+        if (idOccurrences[marketType][queryID] == 0) {
+            idOccurrences[marketType][queryID] = 1;
+        } else {
+            spdlog::warn("Ids are same ID: {} for market type: {}", queryID, marketType);
+            continue;
+        }
+
         spdlog::info("Processing query ID: {}, Market Type: {}", queryID, marketType);
 
-        if (lastSeenIds[marketType] != queryID) {
-            lastSeenIds[marketType] = queryID;  
+        string queryType = query["query_type"].GetString();
+        string instrumentName = query["instrument_name"].GetString();
 
-            string queryType = query["query_type"].GetString();
-            string instrumentName = query["instrument_name"].GetString();
+        rapidjson::Value resultObj(rapidjson::kObjectType);
+        resultObj.AddMember("instrument_name", rapidjson::Value(instrumentName.c_str(), allocator), allocator);
+        resultObj.AddMember("market_type", rapidjson::Value(marketType.c_str(), allocator), allocator);
 
-            rapidjson::Value resultObj(rapidjson::kObjectType);
-            resultObj.AddMember("instrument_name", rapidjson::Value(instrumentName.c_str(), allocator), allocator);
-            resultObj.AddMember("market_type", rapidjson::Value(marketType.c_str(), allocator), allocator);
-
-            // Process the queries based on their type
-                     if (queryType == "GET") {
-                if (marketType == "SPOT") {
-                    auto data = exchangeData.spotSymbols.find(instrumentName);
-                    if (data != exchangeData.spotSymbols.end()) {
-                        display("SPOT", instrumentName, data->second);
-                    } else {
-                        spdlog::warn("SPOT symbol {} not found", instrumentName);
-                    }
-                } else if (marketType == "usd_futures") {
-                    auto data = exchangeData.usdSymbols.find(instrumentName);
-                    if (data != exchangeData.usdSymbols.end()) {
-                        display("USD Futures", instrumentName, data->second);
-                    } else {
-                        spdlog::warn("USD Futures symbol {} not found", instrumentName);
-                    }
-                } else if (marketType == "coin_futures") {
-                    auto data = exchangeData.coinSymbols.find(instrumentName);
-                    if (data != exchangeData.coinSymbols.end()) {
-                        display("Coin Futures", instrumentName, data->second);
-                    } else {
-                        spdlog::warn("Coin Futures symbol {} not found", instrumentName);
-                    }
+        // Process the queries based on their type
+        if (queryType == "GET") {
+            if (marketType == "SPOT") {
+                auto data = exchangeData.spotSymbols.find(instrumentName);
+                if (data != exchangeData.spotSymbols.end()) {
+                    display("SPOT", instrumentName, data->second);
+                } else {
+                    spdlog::warn("SPOT symbol {} not found", instrumentName);
                 }
-            } else if (queryType == "UPDATE") {
-                string newStatus = query["data"]["status"].GetString();
-                if (marketType == "SPOT") {
-                    auto data = exchangeData.spotSymbols.find(instrumentName);
-                    if (data != exchangeData.spotSymbols.end()) {
-                        auto &MarketInfo = data->second;
-                        MarketInfo.status = newStatus;
-                        display("SPOT", instrumentName, MarketInfo);
-                    } else {
-                        spdlog::warn("SPOT symbol {} not found for update", instrumentName);
-                    }
-                } else if (marketType == "usd_futures") {
-                    auto data = exchangeData.usdSymbols.find(instrumentName);
-                    if (data != exchangeData.usdSymbols.end()) {
-                        auto &MarketInfo = data->second;
-                        MarketInfo.status = newStatus;
-                        display("USD Futures", instrumentName, MarketInfo);
-                    } else {
-                        spdlog::warn("USD Futures symbol {} not found for update", instrumentName);
-                    }
-                } else if (marketType == "coin_futures") {
-                    auto data = exchangeData.coinSymbols.find(instrumentName);
-                    if (data != exchangeData.coinSymbols.end()) {
-                        auto &MarketInfo = data->second;
-                        MarketInfo.status = newStatus;
-                        display("Coin Futures", instrumentName, MarketInfo);
-                    } else {
-                        spdlog::warn("Coin Futures symbol {} not found for update", instrumentName);
-                    }
+            } else if (marketType == "usd_futures") {
+                auto data = exchangeData.usdSymbols.find(instrumentName);
+                if (data != exchangeData.usdSymbols.end()) {
+                    display("USD Futures", instrumentName, data->second);
+                } else {
+                    spdlog::warn("USD Futures symbol {} not found", instrumentName);
                 }
-            } else if (queryType == "DELETE") {
-                if (marketType == "SPOT") {
-                    auto data = exchangeData.spotSymbols.find(instrumentName);
-                    if (data != exchangeData.spotSymbols.end()) {
-                        spdlog::info("Removing SPOT symbol: {}", instrumentName);
-                        exchangeData.spotSymbols.erase(data);
-                    } else {
-                        spdlog::warn("SPOT symbol {} not found for deletion", instrumentName);
-                    }
-                } else if (marketType == "usd_futures") {
-                    auto data = exchangeData.usdSymbols.find(instrumentName);
-                    if (data != exchangeData.usdSymbols.end()) {
-                        spdlog::info("Removing USD Futures symbol: {}", instrumentName);
-                        exchangeData.usdSymbols.erase(data);
-                    } else {
-                        spdlog::warn("USD Futures symbol {} not found for deletion", instrumentName);
-                    }
-                } else if (marketType == "coin_futures") {
-                    auto data = exchangeData.coinSymbols.find(instrumentName);
-                    if (data != exchangeData.coinSymbols.end()) {
-                        spdlog::info("Removing Coin Futures symbol: {}", instrumentName);
-                        exchangeData.coinSymbols.erase(data);
-                    } else {
-                        spdlog::warn("Coin Futures symbol {} not found for deletion", instrumentName);
-                    }
+            } else if (marketType == "coin_futures") {
+                auto data = exchangeData.coinSymbols.find(instrumentName);
+                if (data != exchangeData.coinSymbols.end()) {
+                    display("Coin Futures", instrumentName, data->second);
+                } else {
+                    spdlog::warn("Coin Futures symbol {} not found", instrumentName);
                 }
             }
-
-            resultArray.PushBack(resultObj, allocator);
-        } else {
-            spdlog::warn("IDs are the same for market type: {}", marketType);
+        } else if (queryType == "UPDATE") {
+            string newStatus = query["data"]["status"].GetString();
+            if (marketType == "SPOT") {
+                auto data = exchangeData.spotSymbols.find(instrumentName);
+                if (data != exchangeData.spotSymbols.end()) {
+                    auto &MarketInfo = data->second;
+                    MarketInfo.status = newStatus;
+                    display("SPOT", instrumentName, MarketInfo);
+                } else {
+                    spdlog::warn("SPOT symbol {} not found for update", instrumentName);
+                }
+            } else if (marketType == "usd_futures") {
+                auto data = exchangeData.usdSymbols.find(instrumentName);
+                if (data != exchangeData.usdSymbols.end()) {
+                    auto &MarketInfo = data->second;
+                    MarketInfo.status = newStatus;
+                    display("USD Futures", instrumentName, MarketInfo);
+                } else {
+                    spdlog::warn("USD Futures symbol {} not found for update", instrumentName);
+                }
+            } else if (marketType == "coin_futures") {
+                auto data = exchangeData.coinSymbols.find(instrumentName);
+                if (data != exchangeData.coinSymbols.end()) {
+                    auto &MarketInfo = data->second;
+                    MarketInfo.status = newStatus;
+                    display("Coin Futures", instrumentName, MarketInfo);
+                } else {
+                    spdlog::warn("Coin Futures symbol {} not found for update", instrumentName);
+                }
+            }
+        } else if (queryType == "DELETE") {
+            if (marketType == "SPOT") {
+                auto data = exchangeData.spotSymbols.find(instrumentName);
+                if (data != exchangeData.spotSymbols.end()) {
+                    spdlog::info("Removing SPOT symbol: {}", instrumentName);
+                    exchangeData.spotSymbols.erase(data);
+                } else {
+                    spdlog::warn("SPOT symbol {} not found for deletion", instrumentName);
+                }
+            } else if (marketType == "usd_futures") {
+                auto data = exchangeData.usdSymbols.find(instrumentName);
+                if (data != exchangeData.usdSymbols.end()) {
+                    spdlog::info("Removing USD Futures symbol: {}", instrumentName);
+                    exchangeData.usdSymbols.erase(data);
+                } else {
+                    spdlog::warn("USD Futures symbol {} not found for deletion", instrumentName);
+                }
+            } else if (marketType == "coin_futures") {
+                auto data = exchangeData.coinSymbols.find(instrumentName);
+                if (data != exchangeData.coinSymbols.end()) {
+                    spdlog::info("Removing Coin Futures symbol: {}", instrumentName);
+                    exchangeData.coinSymbols.erase(data);
+                } else {
+                    spdlog::warn("Coin Futures symbol {} not found for deletion", instrumentName);
+                }
+            }
         }
+
+        resultArray.PushBack(resultObj, allocator);
     }
     myMutex.unlock();
 
@@ -273,7 +271,6 @@ void processQueries(const rapidjson::Document &doc)
 
     spdlog::info("Processed queries and appended results to file.");
 }
-
 //reading the query.json file
 void readQueryFile(const string &queryFile, rapidjson::Document &doc1)
 {
