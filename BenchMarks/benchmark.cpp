@@ -14,26 +14,6 @@ string spotBase, usdtFutureBase, coinFutureBase;
 string spotTarget, usdtFutureTarget, coinFutureTarget;
 int request_interval;
 
-void fail(boost::system::error_code ec, char const* what) {
-    std::cerr << what << ": " << ec.message() << "\n";
-}
-
-
-void fetchData(const string &baseUrl, const string &endpoint, map<string, symbolInfo> &symbolsMap, net::io_context &ioc, ssl::context &ctx)
-{
-    auto const host = baseUrl.c_str();
-    auto const port = "443";
-    auto const target = endpoint.c_str();
-    int version = 11;
-
-    auto sessionPtr = make_shared<session>(net::make_strand(ioc), ctx);
-    sessionPtr->run(host, port, target, version);
-
-    ioc.run();
-    http::response<http::string_body> exchangeData = sessionPtr->returnResponse();
-    parseSymbols(exchangeData.body(), symbolsMap);
-}
-
 void readConfig(string configFile, rapidjson::Document &doc1) {
 
     FILE* fp = fopen(configFile.c_str(), "r");
@@ -56,28 +36,76 @@ void readConfig(string configFile, rapidjson::Document &doc1) {
     fclose(fp);
 }
 
-//function to test benchmark for the fetch data
-static void BM_FetchData(benchmark::State& state) {
-    std::string baseUrl = "api.binance.com";
-    std::string endpoint = "/api/v3/exchangeInfo";
-    std::map<std::string, symbolInfo> symbolsMap;
-    boost::asio::io_context ioc;
-    boost::asio::ssl::context ctx(boost::asio::ssl::context::tlsv12_client);
+void readQueryFile(const string &queryFile, rapidjson::Document &doc1)
+{
+    FILE *fp = fopen(queryFile.c_str(), "r");
+    if (!fp){
+        cerr << "Error: unable to open file" << endl;
+        return;
+    }
 
+    char buffer[65536];
+    rapidjson::FileReadStream is(fp, buffer, sizeof(buffer));
+    doc1.ParseStream(is);
+    if (doc1.HasParseError())
+    {
+        cerr << "Error parsing JSON file!" << endl;
+    }
+
+    fclose(fp);
+}
+
+const std::string dummyResponse = R"({
+    "symbols": [
+        {
+            "symbol": "BTCUSDT",
+            "quoteAsset": "USDT",
+            "status": "TRADING",
+            "filters": [
+                {"filterType": "PRICE_FILTER", "tickSize": "0.01"},
+                {"filterType": "LOT_SIZE", "stepSize": "0.001"}
+            ]
+        },
+        {
+            "symbol": "ETHUSDT",
+            "quoteAsset": "USDT",
+            "status": "TRADING",
+            "filters": [
+                {"filterType": "PRICE_FILTER", "tickSize": "0.01"},
+                {"filterType": "LOT_SIZE", "stepSize": "0.001"}
+            ]
+        }
+    ]
+})";
+
+
+//BenchMark to read query file
+static void BenchMark_ReadQuery(benchmark::State& state) {
+    rapidjson::Document doc;
+    std::string queryFile = "/home/noman-shafique/Training/Tasks/BinanceExchangeInfoHandler/query.json";
     for (auto _ : state) {
-        fetchData(baseUrl, endpoint, symbolsMap, ioc, ctx);
+        readQueryFile(queryFile, doc);
     }
 }
-BENCHMARK(BM_FetchData);
+BENCHMARK(BenchMark_ReadQuery);
 
-//function to test benchmark for the read data
-static void BM_ReadConfig(benchmark::State& state) {
+//BenchMark to read config file
+static void BenchMark_ReadConfig(benchmark::State& state) {
     rapidjson::Document doc;
     std::string configFile = "/home/noman-shafique/Training/Tasks/BinanceExchangeInfoHandler/config.json";
     for (auto _ : state) {
         readConfig(configFile, doc);
     }
 }
-BENCHMARK(BM_ReadConfig);
+BENCHMARK(BenchMark_ReadConfig);
+
+//Benchmark for the parseSymbols function
+static void BenchMark_ParseSymbols(benchmark::State& state) {
+    std::map<std::string, symbolInfo> symbolsMap;
+    for (auto _ : state) {
+        parseSymbols(const_cast<std::string&>(dummyResponse), &symbolsMap);
+    }
+}
+BENCHMARK(BenchMark_ParseSymbols);
 
 BENCHMARK_MAIN();
