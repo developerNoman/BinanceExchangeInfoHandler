@@ -1,12 +1,23 @@
 #include "request.h"
 #include <set>
-#include <rapidjson/document.h>
-#include <rapidjson/filereadstream.h>
-#include <boost/asio.hpp>
-#include <boost/asio/steady_timer.hpp>
-#include <boost/bind/bind.hpp>
-#include <rapidjson/writer.h>
-#include <rapidjson/stringbuffer.h>
+#include "rapidjson/document.h"
+#include "rapidjson/filereadstream.h"
+#include "boost/asio.hpp"
+#include "boost/asio/steady_timer.hpp"
+#include "boost/bind/bind.hpp"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
+#include "spdlog/spdlog.h"         
+#include "rapidjson/document.h"    
+#include "rapidjson/writer.h"      
+#include "rapidjson/stringbuffer.h" 
+#include "rapidjson/istreamwrapper.h" 
+#include "rapidjson/ostreamwrapper.h" 
+#include "spdlog/spdlog.h" 
+#include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
+#include "spdlog/sinks/ostream_sink.h"
+#include <mutex>
 #include <thread>
 #include <chrono>
 #include <cstdio>
@@ -15,32 +26,23 @@
 #include <map>
 #include <iostream>
 #include <fstream>
-#include <spdlog/spdlog.h>
-#include <unordered_map>           
-#include "rapidjson/document.h"    
-#include "rapidjson/writer.h"      
-#include "rapidjson/stringbuffer.h" 
-#include "rapidjson/istreamwrapper.h" 
-#include "rapidjson/ostreamwrapper.h" 
-#include <spdlog/spdlog.h>  
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-#include <spdlog/sinks/ostream_sink.h>
 
 using namespace std;
 namespace net = boost::asio;
 
+mutex myMutex;
+
 set<int> processedIds;
-void fetchData(const string &baseUrl, const string &endpoint, map<string, symbolInfo> &symbolsMap, boost::asio::io_context &ioc, boost::asio::ssl::context &ctx);
+void fetchData(const string &baseUrl, const string &endpoint, map<string, MarketInfo> &symbolsMap, boost::asio::io_context &ioc, boost::asio::ssl::context &ctx);
 
 string logLevel;
 string spotBase, usdtFutureBase, coinFutureBase;
 string spotTarget, usdtFutureTarget, coinFutureTarget;
 int request_interval;
 
-map<string, symbolInfo> symbolsMap;
+map<string, MarketInfo> symbolsMap;
 //object of class is created
-exchangeInfo binanceExchange;
+exchangeSymbols exchangeData;
 
 //method to read the config.json file and store in variables
 void readConfig(string configFile, rapidjson::Document &doc1) {
@@ -83,12 +85,12 @@ void coinFutureData(net::io_context &ioc, ssl::context &ctx, const string &coinF
 }
 
 //function to display the extracted data from market
-void display(const string &marketType, const string &instrumentName, const symbolInfo &symbolInfo) {
-    spdlog::info("{} Market - Symbol: {}", marketType, symbolInfo.symbol);
-    spdlog::info("Quote Asset: {}", symbolInfo.quoteAsset);
-    spdlog::info("Status: {}", symbolInfo.status);
-    spdlog::info("Tick Size: {}", symbolInfo.tickSize);
-    spdlog::info("Step Size: {}", symbolInfo.stepSize);
+void display(const string &marketType, const string &instrumentName, const MarketInfo &MarketInfo) {
+    spdlog::info("{} Market - Symbol: {}", marketType, MarketInfo.symbol);
+    spdlog::info("Quote Asset: {}", MarketInfo.quoteAsset);
+    spdlog::info("Status: {}", MarketInfo.status);
+    spdlog::info("Tick Size: {}", MarketInfo.tickSize);
+    spdlog::info("Step Size: {}", MarketInfo.stepSize);
 
 }
 
@@ -99,7 +101,7 @@ void fail(beast::error_code ec, char const *what)
 }
 
 //function to make http calls by providing the host and target points
-void fetchData(const string &baseUrl, const string &endpoint, map<string, symbolInfo> &symbolsMap, net::io_context &ioc, ssl::context &ctx)
+void fetchData(const string &baseUrl, const string &endpoint, map<string, MarketInfo> &symbolsMap, net::io_context &ioc, ssl::context &ctx)
 {
     spdlog::info("Fetching data from baseUrl: {}, endpoint: {}", baseUrl, endpoint);
     auto const host = baseUrl.c_str();
@@ -126,10 +128,11 @@ void processQueries(const rapidjson::Document &doc)
     rapidjson::Document resultDoc;
     resultDoc.SetObject();
     rapidjson::Document::AllocatorType& allocator = resultDoc.GetAllocator();
+
     rapidjson::Value resultArray(rapidjson::kArrayType);
 
     // Try to open and parse the existing file to append data
-    std::ifstream ifs("/home/noman-shafique/Training/Tasks/BinanceExchangeInfoHandler/answers.json");
+    ifstream ifs("answers.json");
     if (ifs.is_open()) {
         rapidjson::IStreamWrapper isw(ifs);
         resultDoc.ParseStream(isw);
@@ -142,6 +145,7 @@ void processQueries(const rapidjson::Document &doc)
     const rapidjson::Value &queries = doc["query"];
 
     int length=queries.Size();
+    myMutex.lock();
     for (int i = 0; i < length; ++i)
     {
         const rapidjson::Value &query = queries[i];
@@ -153,14 +157,14 @@ void processQueries(const rapidjson::Document &doc)
         }
 
         int queryID = query["id"].GetInt();
-        std::string marketType = query["market_type"].GetString();
+        string marketType = query["market_type"].GetString();
         spdlog::info("Processing query ID: {}, Market Type: {}", queryID, marketType);
 
         if (lastSeenIds[marketType] != queryID) {
-            lastSeenIds[marketType] = queryID;  // Update last seen ID
+            lastSeenIds[marketType] = queryID;  
 
-            std::string queryType = query["query_type"].GetString();
-            std::string instrumentName = query["instrument_name"].GetString();
+            string queryType = query["query_type"].GetString();
+            string instrumentName = query["instrument_name"].GetString();
 
             rapidjson::Value resultObj(rapidjson::kObjectType);
             resultObj.AddMember("instrument_name", rapidjson::Value(instrumentName.c_str(), allocator), allocator);
@@ -169,22 +173,22 @@ void processQueries(const rapidjson::Document &doc)
             // Process the queries based on their type
                      if (queryType == "GET") {
                 if (marketType == "SPOT") {
-                    auto data = binanceExchange.spotSymbols.find(instrumentName);
-                    if (data != binanceExchange.spotSymbols.end()) {
+                    auto data = exchangeData.spotSymbols.find(instrumentName);
+                    if (data != exchangeData.spotSymbols.end()) {
                         display("SPOT", instrumentName, data->second);
                     } else {
                         spdlog::warn("SPOT symbol {} not found", instrumentName);
                     }
                 } else if (marketType == "usd_futures") {
-                    auto data = binanceExchange.usdSymbols.find(instrumentName);
-                    if (data != binanceExchange.usdSymbols.end()) {
+                    auto data = exchangeData.usdSymbols.find(instrumentName);
+                    if (data != exchangeData.usdSymbols.end()) {
                         display("USD Futures", instrumentName, data->second);
                     } else {
                         spdlog::warn("USD Futures symbol {} not found", instrumentName);
                     }
                 } else if (marketType == "coin_futures") {
-                    auto data = binanceExchange.coinSymbols.find(instrumentName);
-                    if (data != binanceExchange.coinSymbols.end()) {
+                    auto data = exchangeData.coinSymbols.find(instrumentName);
+                    if (data != exchangeData.coinSymbols.end()) {
                         display("Coin Futures", instrumentName, data->second);
                     } else {
                         spdlog::warn("Coin Futures symbol {} not found", instrumentName);
@@ -193,55 +197,55 @@ void processQueries(const rapidjson::Document &doc)
             } else if (queryType == "UPDATE") {
                 string newStatus = query["data"]["status"].GetString();
                 if (marketType == "SPOT") {
-                    auto data = binanceExchange.spotSymbols.find(instrumentName);
-                    if (data != binanceExchange.spotSymbols.end()) {
-                        auto &symbolInfo = data->second;
-                        symbolInfo.status = newStatus;
-                        display("SPOT", instrumentName, symbolInfo);
+                    auto data = exchangeData.spotSymbols.find(instrumentName);
+                    if (data != exchangeData.spotSymbols.end()) {
+                        auto &MarketInfo = data->second;
+                        MarketInfo.status = newStatus;
+                        display("SPOT", instrumentName, MarketInfo);
                     } else {
                         spdlog::warn("SPOT symbol {} not found for update", instrumentName);
                     }
                 } else if (marketType == "usd_futures") {
-                    auto data = binanceExchange.usdSymbols.find(instrumentName);
-                    if (data != binanceExchange.usdSymbols.end()) {
-                        auto &symbolInfo = data->second;
-                        symbolInfo.status = newStatus;
-                        display("USD Futures", instrumentName, symbolInfo);
+                    auto data = exchangeData.usdSymbols.find(instrumentName);
+                    if (data != exchangeData.usdSymbols.end()) {
+                        auto &MarketInfo = data->second;
+                        MarketInfo.status = newStatus;
+                        display("USD Futures", instrumentName, MarketInfo);
                     } else {
                         spdlog::warn("USD Futures symbol {} not found for update", instrumentName);
                     }
                 } else if (marketType == "coin_futures") {
-                    auto data = binanceExchange.coinSymbols.find(instrumentName);
-                    if (data != binanceExchange.coinSymbols.end()) {
-                        auto &symbolInfo = data->second;
-                        symbolInfo.status = newStatus;
-                        display("Coin Futures", instrumentName, symbolInfo);
+                    auto data = exchangeData.coinSymbols.find(instrumentName);
+                    if (data != exchangeData.coinSymbols.end()) {
+                        auto &MarketInfo = data->second;
+                        MarketInfo.status = newStatus;
+                        display("Coin Futures", instrumentName, MarketInfo);
                     } else {
                         spdlog::warn("Coin Futures symbol {} not found for update", instrumentName);
                     }
                 }
             } else if (queryType == "DELETE") {
                 if (marketType == "SPOT") {
-                    auto data = binanceExchange.spotSymbols.find(instrumentName);
-                    if (data != binanceExchange.spotSymbols.end()) {
+                    auto data = exchangeData.spotSymbols.find(instrumentName);
+                    if (data != exchangeData.spotSymbols.end()) {
                         spdlog::info("Removing SPOT symbol: {}", instrumentName);
-                        binanceExchange.spotSymbols.erase(data);
+                        exchangeData.spotSymbols.erase(data);
                     } else {
                         spdlog::warn("SPOT symbol {} not found for deletion", instrumentName);
                     }
                 } else if (marketType == "usd_futures") {
-                    auto data = binanceExchange.usdSymbols.find(instrumentName);
-                    if (data != binanceExchange.usdSymbols.end()) {
+                    auto data = exchangeData.usdSymbols.find(instrumentName);
+                    if (data != exchangeData.usdSymbols.end()) {
                         spdlog::info("Removing USD Futures symbol: {}", instrumentName);
-                        binanceExchange.usdSymbols.erase(data);
+                        exchangeData.usdSymbols.erase(data);
                     } else {
                         spdlog::warn("USD Futures symbol {} not found for deletion", instrumentName);
                     }
                 } else if (marketType == "coin_futures") {
-                    auto data = binanceExchange.coinSymbols.find(instrumentName);
-                    if (data != binanceExchange.coinSymbols.end()) {
+                    auto data = exchangeData.coinSymbols.find(instrumentName);
+                    if (data != exchangeData.coinSymbols.end()) {
                         spdlog::info("Removing Coin Futures symbol: {}", instrumentName);
-                        binanceExchange.coinSymbols.erase(data);
+                        exchangeData.coinSymbols.erase(data);
                     } else {
                         spdlog::warn("Coin Futures symbol {} not found for deletion", instrumentName);
                     }
@@ -250,13 +254,14 @@ void processQueries(const rapidjson::Document &doc)
 
             resultArray.PushBack(resultObj, allocator);
         } else {
-            spdlog::info("IDs are the same for market type: {}", marketType);
+            spdlog::warn("IDs are the same for market type: {}", marketType);
         }
     }
+    myMutex.unlock();
 
     resultDoc.RemoveMember("results");
     resultDoc.AddMember("results", resultArray, allocator);
-    std::ofstream ofs("answers.json");
+    ofstream ofs("answers.json");
     if (!ofs.is_open()) {
         spdlog::error("Failed to open answer.json for writing!");
         return;
@@ -303,21 +308,15 @@ void readQueryFileContinuously(const string &queryFile, net::io_context &ioc)
 }
 
 void fetchSpotData(net::io_context &ioc, ssl::context &ctx, const string &spotBaseUrl, const string &spotEndpoint) {
-
         spotData(ioc, ctx, spotBaseUrl, spotEndpoint);
-
 }
 
 void fetchUsdFutureData(net::io_context &ioc, ssl::context &ctx, const string &usdFutureBaseUrl, const string &usdFutureEndpoint) {
-
-        usdFutureData(ioc, ctx, usdFutureBaseUrl, usdFutureEndpoint);
-
+       usdFutureData(ioc, ctx, usdFutureBaseUrl, usdFutureEndpoint);
 }
 
 void fetchCoinFutureData(net::io_context &ioc, ssl::context &ctx, const string &coinFutureBaseUrl, const string &coinFutureEndpoint) {
-
-        coinFutureData(ioc, ctx, coinFutureBaseUrl, coinFutureEndpoint);
-
+    coinFutureData(ioc, ctx, coinFutureBaseUrl, coinFutureEndpoint);
 }
 
 //the function which call all endpoints function and then use this function (fetchEndpoints) as a callBack Function in timer
@@ -325,8 +324,8 @@ void fetchEndpoints(const boost::system::error_code& /*e*/, boost::asio::steady_
     fetchSpotData(ioc, ctx, ref(spotBase), ref(spotTarget));
     fetchUsdFutureData(ioc, ctx, ref(usdtFutureBase), ref(usdtFutureTarget));
     fetchCoinFutureData(ioc, ctx, ref(coinFutureBase), ref(coinFutureTarget));
-    t->expires_at(t->expiry() + boost::asio::chrono::seconds(35));
-    t->async_wait(boost::bind(fetchEndpoints, boost::asio::placeholders::error, t, std::ref(ioc), std::ref(ctx)));
+    t->expires_at(t->expiry() + boost::asio::chrono::seconds(request_interval));
+    t->async_wait(boost::bind(fetchEndpoints, boost::asio::placeholders::error, t, ref(ioc), ref(ctx)));
 }
 
 

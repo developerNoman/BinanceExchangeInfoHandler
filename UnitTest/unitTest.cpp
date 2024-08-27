@@ -1,14 +1,16 @@
-#include <gtest/gtest.h>
-#include <rapidjson/document.h>
-#include <fstream>
-#include <rapidjson/filereadstream.h>
 #include "request.h"
+#include "gtest/gtest.h"
+#include "rapidjson/document.h"
+#include "rapidjson/filereadstream.h"
+#include <fstream>
+
+using namespace std;
 
 string spotB, usdtFB, coinFB;
 string spotT, usdtFT, coinFT;
 
 //function to read the config.json file
-void readConfig(std::string configFile, rapidjson::Document &doc1) {
+void readConfig(string configFile, rapidjson::Document &doc1) {
     FILE* fp = fopen(configFile.c_str(), "r");
     if (!fp) {
         cerr << "Error: unable to open file" << endl;
@@ -86,7 +88,7 @@ void readConfig(std::string configFile, rapidjson::Document &doc1) {
 
 //TestCase to check the data which is get after parsing the symbols
 TEST(ParseSymbolsTest, CorrectlyParsesJSON) {
-    std::string jsonString = R"(
+    string jsonString = R"(
     {
         "symbols": [
             {
@@ -104,7 +106,7 @@ TEST(ParseSymbolsTest, CorrectlyParsesJSON) {
     rapidjson::Document doc;
     doc.Parse(jsonString.c_str());
 
-    std::map<std::string, symbolInfo> symbolsMap;
+    map<string, MarketInfo> symbolsMap;
     parseSymbols(jsonString, &symbolsMap);  
 
     ASSERT_EQ(symbolsMap.size(), 1);
@@ -121,9 +123,9 @@ TEST(ParseSymbolsTest, CorrectlyParsesJSON) {
 
 //TestCase which handle Empty json
 TEST(ParseSymbolsTest, HandlesEmptyJSON) {
-    std::string jsonString = R"({})";
+    string jsonString = R"({})";
 
-    std::map<std::string, symbolInfo> symbolsMap;
+    map<string, MarketInfo> symbolsMap;
     parseSymbols(jsonString, &symbolsMap);
 
     EXPECT_TRUE(symbolsMap.empty());
@@ -131,7 +133,7 @@ TEST(ParseSymbolsTest, HandlesEmptyJSON) {
 
 //Testcase to handle multiple symbols
 TEST(ParseSymbolsTest, HandlesMultipleSymbols) {
-    std::string jsonString = R"(
+    string jsonString = R"(
     {
         "symbols": [
             {
@@ -158,7 +160,7 @@ TEST(ParseSymbolsTest, HandlesMultipleSymbols) {
     rapidjson::Document doc;
     doc.Parse(jsonString.c_str());
 
-    std::map<std::string, symbolInfo> symbolsMap;
+    map<string, MarketInfo> symbolsMap;
     parseSymbols(jsonString, &symbolsMap);
 
     ASSERT_EQ(symbolsMap.size(), 2);
@@ -176,7 +178,7 @@ TEST(ParseSymbolsTest, HandlesMultipleSymbols) {
 
 //test case to handle wrong data type
 TEST(ParseSymbolsTest, HandlesUnexpectedDataTypes) {
-    std::string jsonString = R"(
+    string jsonString = R"(
     {
         "symbols": [
             {
@@ -194,7 +196,7 @@ TEST(ParseSymbolsTest, HandlesUnexpectedDataTypes) {
     rapidjson::Document doc;
     doc.Parse(jsonString.c_str());
 
-    std::map<std::string, symbolInfo> symbolsMap;
+    map<string, MarketInfo> symbolsMap;
     parseSymbols(jsonString, &symbolsMap);
 
     ASSERT_EQ(symbolsMap.size(), 1);

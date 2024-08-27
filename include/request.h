@@ -2,17 +2,17 @@
 #define REQUEST_H
 
 #include "example/common/root_certificates.hpp"
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/beast/version.hpp>
-#include <boost/asio/ssl.hpp>
-#include <boost/asio/strand.hpp>
-#include <boost/asio/io_context.hpp>
-#include <boost/asio/ip/tcp.hpp>
-#include <rapidjson/error/en.h>  
-#include <boost/asio.hpp>
+#include "boost/beast/core.hpp"
+#include "boost/beast/http.hpp"
+#include "boost/beast/version.hpp"
+#include "boost/asio/ssl.hpp"
+#include "boost/asio/strand.hpp"
+#include "boost/asio/io_context.hpp"
+#include "boost/asio/ip/tcp.hpp"
+#include "rapidjson/error/en.h"
+#include "boost/asio.hpp"
+#include "rapidjson/document.h"
 #include <memory>
-#include <rapidjson/document.h>
 #include <map>
 #include <string>
 #include <iostream>
@@ -24,27 +24,27 @@ namespace net = boost::asio;
 namespace ssl = boost::asio::ssl;
 using tcp = boost::asio::ip::tcp;
 
-// Define the symbolInfo structure
-struct symbolInfo {
-    std::string symbol;
-    std::string quoteAsset;
-    std::string status;
-    std::string tickSize;
-    std::string stepSize;
+// Define the MarketInfo structure
+struct MarketInfo {
+    string symbol;
+    string quoteAsset;
+    string status;
+    string tickSize;
+    string stepSize;
 };
 
-// Define the exchangeInfo structure
-class exchangeInfo {
+// Define the exchangeSymbols structure
+class exchangeSymbols {
 public:
-    std::map<std::string, symbolInfo> spotSymbols;
-    std::map<std::string, symbolInfo> usdSymbols;
-    std::map<std::string, symbolInfo> coinSymbols;
+    map<string, MarketInfo> spotSymbols;
+    map<string, MarketInfo> usdSymbols;
+    map<string, MarketInfo> coinSymbols;
 };
-extern exchangeInfo binanceExchange;
+extern exchangeSymbols exchangeData;
 
-void parseSymbols(std::string& responseBody,  std::map<std::string, symbolInfo> *symbolsMap) {
+void parseSymbols(string& responseBody,  map<string, MarketInfo> *symbolsMap) {
     if (responseBody.empty()) {
-        std::cerr << "Error: The response body is empty." << std::endl;
+        cerr << "Error: The response body is empty." << endl;
         return;
     }
 
@@ -52,25 +52,25 @@ void parseSymbols(std::string& responseBody,  std::map<std::string, symbolInfo> 
     rapidjson::ParseResult parseResult = fullData.Parse(responseBody.c_str());
 
     if (!parseResult) {
-        std::cerr << "JSON parse error: " << rapidjson::GetParseError_En(parseResult.Code())
-                  << " (offset " << parseResult.Offset() << ")" << std::endl;
-        std::cerr << "Response Body: " << responseBody << std::endl;
+        cerr << "JSON parse error: " << rapidjson::GetParseError_En(parseResult.Code())
+                  << " (offset " << parseResult.Offset() << ")" << endl;
+        cerr << "Response Body: " << responseBody << endl;
         return;
     }
 
     if (!fullData.IsObject() || !fullData.HasMember("symbols") || !fullData["symbols"].IsArray()) {
-        std::cerr << "Invalid JSON format or missing 'symbols' array." << std::endl;
-        std::cerr << "Response Body: " << responseBody << std::endl;
+        cerr << "Invalid JSON format or missing 'symbols' array." << endl;
+        cerr << "Response Body: " << responseBody << endl;
         return;
     }
 
     const auto& symbolsArray = fullData["symbols"];
     for (const auto& symbol : symbolsArray.GetArray()) {
-        symbolInfo info;
+        MarketInfo info;
         if (symbol.HasMember("symbol") && symbol["symbol"].IsString()) {
             info.symbol = symbol["symbol"].GetString();
         } else {
-            std::cerr << "Missing or invalid 'symbol' field in a symbol object." << std::endl;
+            cerr << "Missing or invalid 'symbol' field in a symbol object." << endl;
             continue;
         }
         if (symbol.HasMember("quoteAsset")) {
@@ -78,7 +78,7 @@ void parseSymbols(std::string& responseBody,  std::map<std::string, symbolInfo> 
                 info.quoteAsset = symbol["quoteAsset"].GetString();
             } else {
                 info.quoteAsset = ""; // Handle unexpected type by setting to empty string
-                std::cerr << "Invalid 'quoteAsset' field in symbol: " << info.symbol << std::endl;
+                cerr << "Invalid 'quoteAsset' field in symbol: " << info.symbol << endl;
             }
         } else {
             info.quoteAsset = ""; // Handle missing field
@@ -88,13 +88,13 @@ void parseSymbols(std::string& responseBody,  std::map<std::string, symbolInfo> 
         } else if (symbol.HasMember("contractStatus") && symbol["contractStatus"].IsString()) {
             info.status = symbol["contractStatus"].GetString();
         } else {
-            std::cerr << "Missing 'status' or 'contractStatus' in symbol: " << info.symbol << std::endl;
+            cerr << "Missing 'status' or 'contractStatus' in symbol: " << info.symbol << endl;
         }
 
         if (symbol.HasMember("filters") && symbol["filters"].IsArray()) {
             for (const auto& filter : symbol["filters"].GetArray()) {
                 if (filter.HasMember("filterType") && filter["filterType"].IsString()) {
-                    std::string filterType = filter["filterType"].GetString();
+                    string filterType = filter["filterType"].GetString();
                     if (filterType == "PRICE_FILTER") {
                         info.tickSize = filter.HasMember("tickSize") && filter["tickSize"].IsString() ?
                                         filter["tickSize"].GetString() : "";
@@ -105,7 +105,7 @@ void parseSymbols(std::string& responseBody,  std::map<std::string, symbolInfo> 
                 }
             }
         } else {
-            std::cerr << "Missing or invalid 'filters' array in symbol: " << info.symbol << std::endl;
+            cerr << "Missing or invalid 'filters' array in symbol: " << info.symbol << endl;
         }
 
         (*symbolsMap)[info.symbol] = info;
@@ -127,7 +127,7 @@ class session : public enable_shared_from_this<session> {
 public:
     boost::beast::http::response<boost::beast::http::string_body> result_;
     boost::beast::http::response<boost::beast::http::string_body> response_;
-    std::string host_;
+    string host_;
 
 
     explicit session(net::any_io_executor ex, ssl::context& ctx)
@@ -182,11 +182,11 @@ public:
         result_ = res_;
                auto responseBody = result_.body();
         if (host_ == "api.binance.com") {
-            parseSymbols(responseBody, &binanceExchange.spotSymbols);
+            parseSymbols(responseBody, &exchangeData.spotSymbols);
         } else if (host_ == "fapi.binance.com") {
-            parseSymbols(responseBody, &binanceExchange.usdSymbols);
+            parseSymbols(responseBody, &exchangeData.usdSymbols);
         } else if (host_ == "dapi.binance.com") {
-            parseSymbols(responseBody, &binanceExchange.coinSymbols);
+            parseSymbols(responseBody, &exchangeData.coinSymbols);
         }
         beast::get_lowest_layer(stream_).expires_after(chrono::seconds(30));
         stream_.async_shutdown(beast::bind_front_handler(&session::on_shutdown, shared_from_this()));

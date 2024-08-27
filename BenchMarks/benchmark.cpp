@@ -1,14 +1,16 @@
-#include <benchmark/benchmark.h>
+#include "benchmark/benchmark.h"
 #include "request.h"
-#include <spdlog/spdlog.h>
-#include <rapidjson/document.h>
-#include <boost/asio.hpp>
-#include <boost/asio/ssl.hpp>
+#include "spdlog/spdlog.h"
+#include "rapidjson/document.h"
+#include "boost/asio.hpp"
+#include "boost/asio/ssl.hpp"
+#include "rapidjson/document.h"
+#include "rapidjson/filereadstream.h"
 #include <fstream>
 #include <thread>
 #include <chrono>
-#include <rapidjson/document.h>
-#include <rapidjson/filereadstream.h>
+
+using namespace std;
 
 string spotBase, usdtFutureBase, coinFutureBase;
 string spotTarget, usdtFutureTarget, coinFutureTarget;
@@ -103,7 +105,7 @@ BENCHMARK(BenchMark_ReadConfig);
 
 //Benchmark for the parseSymbols function
 static void BenchMark_ParseSymbols(benchmark::State& state) {
-    std::map<std::string, symbolInfo> symbolsMap;
+    std::map<std::string, MarketInfo> symbolsMap;
     for (auto _ : state) {
         parseSymbols(const_cast<std::string&>(dummyResponse), &symbolsMap);
     }
