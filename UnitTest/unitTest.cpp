@@ -84,29 +84,28 @@ void readConfig(std::string configFile, rapidjson::Document &doc1) {
     fclose(fp);
 }
 
-//sample json format of result
-const char* sample_json = R"(
-{
-    "symbols": [
-        {
-            "symbol": "BTCUSDT",
-            "quoteAsset": "USDT",
-            "status": "TRADING",
-            "filters": [
-                {"filterType": "PRICE_FILTER", "tickSize": "0.01"},
-                {"filterType": "LOT_SIZE", "stepSize": "0.0001"}
-            ]
-        }
-    ]
-})";
-
 //TestCase to check the data which is get after parsing the symbols
 TEST(ParseSymbolsTest, CorrectlyParsesJSON) {
+    std::string jsonString = R"(
+    {
+        "symbols": [
+            {
+                "symbol": "BTCUSDT",
+                "quoteAsset": "USDT",
+                "status": "TRADING",
+                "filters": [
+                    {"filterType": "PRICE_FILTER", "tickSize": "0.01"},
+                    {"filterType": "LOT_SIZE", "stepSize": "0.0001"}
+                ]
+            }
+        ]
+    })";
+
     rapidjson::Document doc;
-    doc.Parse(sample_json);
+    doc.Parse(jsonString.c_str());
 
     std::map<std::string, symbolInfo> symbolsMap;
-    parseSymbols(sample_json, symbolsMap);
+    parseSymbols(jsonString, &symbolsMap);  
 
     ASSERT_EQ(symbolsMap.size(), 1);
 
@@ -122,47 +121,45 @@ TEST(ParseSymbolsTest, CorrectlyParsesJSON) {
 
 //TestCase which handle Empty json
 TEST(ParseSymbolsTest, HandlesEmptyJSON) {
-    const char* sample_json = R"({})";
+    std::string jsonString = R"({})";
 
     std::map<std::string, symbolInfo> symbolsMap;
-    parseSymbols(sample_json, symbolsMap);
+    parseSymbols(jsonString, &symbolsMap);
 
     EXPECT_TRUE(symbolsMap.empty());
 }
 
-//sample json format of result
-const char* sample_json1 = R"(
-{
-    "symbols": [
-        {
-            "symbol": "BTCUSDT",
-            "quoteAsset": "USDT",
-            "status": "TRADING",
-            "filters": [
-                {"filterType": "PRICE_FILTER", "tickSize": "0.01"},
-                {"filterType": "LOT_SIZE", "stepSize": "0.0001"}
-            ]            
-        },
-        {
-            "symbol": "ETHUSDT",
-            "quoteAsset": "USDT",
-            "status": "TRADING",
-            "filters": [
-                {"filterType": "PRICE_FILTER", "tickSize": "0.01"},
-                {"filterType": "LOT_SIZE", "stepSize": "0.0001"}
-            ]            
-        }        
-    ]
-})";
-
 //Testcase to handle multiple symbols
 TEST(ParseSymbolsTest, HandlesMultipleSymbols) {
+    std::string jsonString = R"(
+    {
+        "symbols": [
+            {
+                "symbol": "BTCUSDT",
+                "quoteAsset": "USDT",
+                "status": "TRADING",
+                "filters": [
+                    {"filterType": "PRICE_FILTER", "tickSize": "0.01"},
+                    {"filterType": "LOT_SIZE", "stepSize": "0.0001"}
+                ]            
+            },
+            {
+                "symbol": "ETHUSDT",
+                "quoteAsset": "USDT",
+                "status": "TRADING",
+                "filters": [
+                    {"filterType": "PRICE_FILTER", "tickSize": "0.01"},
+                    {"filterType": "LOT_SIZE", "stepSize": "0.0001"}
+                ]            
+            }        
+        ]
+    })";
 
     rapidjson::Document doc;
-    doc.Parse(sample_json1);
+    doc.Parse(jsonString.c_str());
 
     std::map<std::string, symbolInfo> symbolsMap;
-    parseSymbols(sample_json1, symbolsMap);
+    parseSymbols(jsonString, &symbolsMap);
 
     ASSERT_EQ(symbolsMap.size(), 2);
 
@@ -177,45 +174,43 @@ TEST(ParseSymbolsTest, HandlesMultipleSymbols) {
     EXPECT_EQ(itETH->second.quoteAsset, "USDT");
 }
 
-
-const char* sample_json2 = R"(
-{
-    "symbols": [
-        {
-            "symbol": "BTCUSDT",
-            "quoteAsset": 123,
-            "status": "TRADING",
-            "filters": [
-                {"filterType": "PRICE_FILTER", "tickSize": "0.01"},
-                {"filterType": "LOT_SIZE", "stepSize": "0.0001"}
-            ]
-        }
-    ]
-})";
-
 //test case to handle wrong data type
 TEST(ParseSymbolsTest, HandlesUnexpectedDataTypes) {
+    std::string jsonString = R"(
+    {
+        "symbols": [
+            {
+                "symbol": "BTCUSDT",
+                "quoteAsset": 123,
+                "status": "TRADING",
+                "filters": [
+                    {"filterType": "PRICE_FILTER", "tickSize": "0.01"},
+                    {"filterType": "LOT_SIZE", "stepSize": "0.0001"}
+                ]
+            }
+        ]
+    })";
+
     rapidjson::Document doc;
-    doc.Parse(sample_json2);
+    doc.Parse(jsonString.c_str());
 
     std::map<std::string, symbolInfo> symbolsMap;
-    parseSymbols(sample_json2, symbolsMap);
+    parseSymbols(jsonString, &symbolsMap);
 
     ASSERT_EQ(symbolsMap.size(), 1);
     auto itBTC = symbolsMap.find("BTCUSDT");
     ASSERT_NE(itBTC, symbolsMap.end());
     EXPECT_EQ(itBTC->second.symbol, "BTCUSDT");
-    EXPECT_EQ(itBTC->second.quoteAsset, ""); // Since the type was not a string, it will give error
+    EXPECT_EQ(itBTC->second.quoteAsset, ""); 
     EXPECT_EQ(itBTC->second.status, "TRADING");
     EXPECT_EQ(itBTC->second.tickSize, "0.01");
     EXPECT_EQ(itBTC->second.stepSize, "0.0001");
 }
 
-
 //TestCase to check the data which is get after reading the files, it is about base urls and endpoints
 TEST(ReadConfigTest, CorrectlyReadsConfig) {
     rapidjson::Document doc1;
-    readConfig("/home/noman-shafique/Training/Tasks/BinanceExchangeInfoHandler/config.json", doc1);
+    readConfig("config.json", doc1);
 
     EXPECT_EQ(spotB, "api.binance.com");
     EXPECT_EQ(usdtFB, "fapi.binance.com");
