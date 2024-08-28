@@ -9,7 +9,7 @@
 4. Go to the build directory: `cd build`
 5. Run the command: `cmake ..`
 6. Run the command: `make`
-7. In docker, build image `sudo docker build -t myExchangeData .` and then run the container with volume mapping `sudo docker run -it -v.:/app --name mycontainer myExchangeData`
+7. In docker, build image `sudo docker build -t myexchangedata .` and then run the container with volume mapping `sudo docker run -it -v.:/app --name mycontainer myexchangedata`
 7. Run main executables: `./exchangeHandler`
 8. Run Unit Tests: `./UnitTest/runTests`
 9. Run Benchmarks: `./BenchMarks/my_benchmark`
