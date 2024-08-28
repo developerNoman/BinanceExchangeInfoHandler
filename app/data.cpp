@@ -28,7 +28,6 @@ namespace net = boost::asio;
 
 mutex myMutex;
 
-set<int> processedIds;
 void fetchData(const string &baseUrl, const string &endpoint, map<string, MarketInfo> &symbolsMap, boost::asio::io_context &ioc, boost::asio::ssl::context &ctx);
 
 string logLevel;
