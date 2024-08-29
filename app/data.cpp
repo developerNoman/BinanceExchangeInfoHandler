@@ -347,7 +347,7 @@ int main()
     load_root_certificates(ctx);
     ctx.set_verify_mode(ssl::verify_peer);
 
-    boost::asio::steady_timer t(ioc, boost::asio::chrono::seconds(15));
+    boost::asio::steady_timer t(ioc, boost::asio::chrono::seconds(request_interval));
     t.async_wait(boost::bind(fetchEndpoints, boost::asio::placeholders::error, &t, ref(ioc), ref(ctx)));
 
 
