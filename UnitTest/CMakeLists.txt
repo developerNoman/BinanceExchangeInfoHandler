@@ -17,6 +17,6 @@ find_package(OpenSSL REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIR})
 
 add_executable(runTests unitTest.cpp)
-
+add_dependencies(runTests boost)
 target_link_libraries(runTests gtest gtest_main pthread ${OPENSSL_LIBRARIES})
 
