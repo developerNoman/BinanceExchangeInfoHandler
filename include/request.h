@@ -25,7 +25,8 @@ namespace ssl = boost::asio::ssl;
 using tcp = boost::asio::ip::tcp;
 
 // Define the MarketInfo structure
-struct MarketInfo {
+struct MarketInfo
+{
     string symbol;
     string quoteAsset;
     string status;
@@ -34,7 +35,8 @@ struct MarketInfo {
 };
 
 // Define the exchangeSymbols structure
-class exchangeSymbols {
+class exchangeSymbols
+{
 public:
     map<string, MarketInfo> spotSymbols;
     map<string, MarketInfo> usdSymbols;
@@ -42,8 +44,10 @@ public:
 };
 extern exchangeSymbols exchangeData;
 
-void parseSymbols(string& responseBody,  map<string, MarketInfo> *symbolsMap) {
-    if (responseBody.empty()) {
+void parseSymbols(string &responseBody, map<string, MarketInfo> *symbolsMap)
+{
+    if (responseBody.empty())
+    {
         cerr << "Error: The response body is empty." << endl;
         return;
     }
@@ -51,60 +55,83 @@ void parseSymbols(string& responseBody,  map<string, MarketInfo> *symbolsMap) {
     rapidjson::Document fullData;
     rapidjson::ParseResult parseResult = fullData.Parse(responseBody.c_str());
 
-    if (!parseResult) {
+    if (!parseResult)
+    {
         cerr << "JSON parse error: " << rapidjson::GetParseError_En(parseResult.Code())
-                  << " (offset " << parseResult.Offset() << ")" << endl;
+             << " (offset " << parseResult.Offset() << ")" << endl;
         cerr << "Response Body: " << responseBody << endl;
         return;
     }
 
-    if (!fullData.IsObject() || !fullData.HasMember("symbols") || !fullData["symbols"].IsArray()) {
+    if (!fullData.IsObject() || !fullData.HasMember("symbols") || !fullData["symbols"].IsArray())
+    {
         cerr << "Invalid JSON format or missing 'symbols' array." << endl;
         cerr << "Response Body: " << responseBody << endl;
         return;
     }
 
-    const auto& symbolsArray = fullData["symbols"];
-    for (const auto& symbol : symbolsArray.GetArray()) {
+    const auto &symbolsArray = fullData["symbols"];
+    for (const auto &symbol : symbolsArray.GetArray())
+    {
         MarketInfo info;
-        if (symbol.HasMember("symbol") && symbol["symbol"].IsString()) {
+        if (symbol.HasMember("symbol") && symbol["symbol"].IsString())
+        {
             info.symbol = symbol["symbol"].GetString();
-        } else {
+        }
+        else
+        {
             cerr << "Missing or invalid 'symbol' field in a symbol object." << endl;
             continue;
         }
-        if (symbol.HasMember("quoteAsset")) {
-            if (symbol["quoteAsset"].IsString()) {
+        if (symbol.HasMember("quoteAsset"))
+        {
+            if (symbol["quoteAsset"].IsString())
+            {
                 info.quoteAsset = symbol["quoteAsset"].GetString();
-            } else {
+            }
+            else
+            {
                 info.quoteAsset = ""; // Handle unexpected type by setting to empty string
                 cerr << "Invalid 'quoteAsset' field in symbol: " << info.symbol << endl;
             }
-        } else {
+        }
+        else
+        {
             info.quoteAsset = ""; // Handle missing field
         }
-        if (symbol.HasMember("status") && symbol["status"].IsString()) {
+        if (symbol.HasMember("status") && symbol["status"].IsString())
+        {
             info.status = symbol["status"].GetString();
-        } else if (symbol.HasMember("contractStatus") && symbol["contractStatus"].IsString()) {
+        }
+        else if (symbol.HasMember("contractStatus") && symbol["contractStatus"].IsString())
+        {
             info.status = symbol["contractStatus"].GetString();
-        } else {
+        }
+        else
+        {
             cerr << "Missing 'status' or 'contractStatus' in symbol: " << info.symbol << endl;
         }
 
-        if (symbol.HasMember("filters") && symbol["filters"].IsArray()) {
-            for (const auto& filter : symbol["filters"].GetArray()) {
-                if (filter.HasMember("filterType") && filter["filterType"].IsString()) {
+        if (symbol.HasMember("filters") && symbol["filters"].IsArray())
+        {
+            for (const auto &filter : symbol["filters"].GetArray())
+            {
+                if (filter.HasMember("filterType") && filter["filterType"].IsString())
+                {
                     string filterType = filter["filterType"].GetString();
-                    if (filterType == "PRICE_FILTER") {
-                        info.tickSize = filter.HasMember("tickSize") && filter["tickSize"].IsString() ?
-                                        filter["tickSize"].GetString() : "";
-                    } else if (filterType == "LOT_SIZE") {
-                        info.stepSize = filter.HasMember("stepSize") && filter["stepSize"].IsString() ?
-                                        filter["stepSize"].GetString() : "";
+                    if (filterType == "PRICE_FILTER")
+                    {
+                        info.tickSize = filter.HasMember("tickSize") && filter["tickSize"].IsString() ? filter["tickSize"].GetString() : "";
+                    }
+                    else if (filterType == "LOT_SIZE")
+                    {
+                        info.stepSize = filter.HasMember("stepSize") && filter["stepSize"].IsString() ? filter["stepSize"].GetString() : "";
                     }
                 }
             }
-        } else {
+        }
+        else
+        {
             cerr << "Missing or invalid 'filters' array in symbol: " << info.symbol << endl;
         }
 
@@ -112,12 +139,11 @@ void parseSymbols(string& responseBody,  map<string, MarketInfo> *symbolsMap) {
     }
 }
 
+void fail(beast::error_code ec, char const *what);
+void load_root_certificates(boost::asio::ssl::context &ctx);
 
-
-void fail(beast::error_code ec, char const* what);
-void load_root_certificates(boost::asio::ssl::context& ctx);
-
-class session : public enable_shared_from_this<session> {
+class session : public enable_shared_from_this<session>
+{
     boost::asio::ip::tcp::resolver resolver_;
     boost::asio::ssl::stream<boost::beast::tcp_stream> stream_;
     boost::beast::flat_buffer buffer_;
@@ -129,17 +155,19 @@ public:
     boost::beast::http::response<boost::beast::http::string_body> response_;
     string host_;
 
+    explicit session(net::any_io_executor ex, ssl::context &ctx)
+        : resolver_(ex), stream_(ex, ctx) {}
 
-    explicit session(net::any_io_executor ex, ssl::context& ctx)
-    : resolver_(ex), stream_(ex, ctx) {}
-
-    boost::beast::http::response<boost::beast::http::string_body> returnResponse() const {
+    boost::beast::http::response<boost::beast::http::string_body> returnResponse() const
+    {
         return result_;
     }
 
-    void run(char const* host, char const* port, char const* target, int version) {
-        host_ = host; 
-        if(! SSL_set_tlsext_host_name(stream_.native_handle(), host)) {
+    void run(char const *host, char const *port, char const *target, int version)
+    {
+        host_ = host;
+        if (!SSL_set_tlsext_host_name(stream_.native_handle(), host))
+        {
             beast::error_code ec{static_cast<int>(::ERR_get_error()), net::error::get_ssl_category()};
             cerr << ec.message() << "\n";
             return;
@@ -153,47 +181,64 @@ public:
         resolver_.async_resolve(host, port, beast::bind_front_handler(&session::on_resolve, shared_from_this()));
     }
 
-    void on_resolve(beast::error_code ec, tcp::resolver::results_type results) {
-        if (ec) return fail(ec, "resolve");
+    void on_resolve(beast::error_code ec, tcp::resolver::results_type results)
+    {
+        if (ec)
+            return fail(ec, "resolve");
         beast::get_lowest_layer(stream_).expires_after(chrono::seconds(30));
         beast::get_lowest_layer(stream_).async_connect(results, beast::bind_front_handler(&session::on_connect, shared_from_this()));
     }
 
-    void on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type) {
-        if (ec) return fail(ec, "connect");
+    void on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type)
+    {
+        if (ec)
+            return fail(ec, "connect");
         stream_.async_handshake(ssl::stream_base::client, beast::bind_front_handler(&session::on_handshake, shared_from_this()));
     }
 
-    void on_handshake(beast::error_code ec) {
-        if (ec) return fail(ec, "handshake");
+    void on_handshake(beast::error_code ec)
+    {
+        if (ec)
+            return fail(ec, "handshake");
         beast::get_lowest_layer(stream_).expires_after(chrono::seconds(30));
         http::async_write(stream_, req_, beast::bind_front_handler(&session::on_write, shared_from_this()));
     }
 
-    void on_write(beast::error_code ec, size_t bytes_transferred) {
+    void on_write(beast::error_code ec, size_t bytes_transferred)
+    {
         boost::ignore_unused(bytes_transferred);
-        if (ec) return fail(ec, "write");
+        if (ec)
+            return fail(ec, "write");
         http::async_read(stream_, buffer_, res_, beast::bind_front_handler(&session::on_read, shared_from_this()));
     }
 
-    void on_read(beast::error_code ec, size_t bytes_transferred) {
+    void on_read(beast::error_code ec, size_t bytes_transferred)
+    {
         boost::ignore_unused(bytes_transferred);
-        if (ec) return fail(ec, "read");
+        if (ec)
+            return fail(ec, "read");
         result_ = res_;
-               auto responseBody = result_.body();
-        if (host_ == "api.binance.com") {
+        auto responseBody = result_.body();
+        if (host_ == "api.binance.com")
+        {
             parseSymbols(responseBody, &exchangeData.spotSymbols);
-        } else if (host_ == "fapi.binance.com") {
+        }
+        else if (host_ == "fapi.binance.com")
+        {
             parseSymbols(responseBody, &exchangeData.usdSymbols);
-        } else if (host_ == "dapi.binance.com") {
+        }
+        else if (host_ == "dapi.binance.com")
+        {
             parseSymbols(responseBody, &exchangeData.coinSymbols);
         }
         beast::get_lowest_layer(stream_).expires_after(chrono::seconds(30));
         stream_.async_shutdown(beast::bind_front_handler(&session::on_shutdown, shared_from_this()));
     }
 
-    void on_shutdown(beast::error_code ec) {
-        if (ec != net::ssl::error::stream_truncated) return fail(ec, "shutdown");
+    void on_shutdown(beast::error_code ec)
+    {
+        if (ec != net::ssl::error::stream_truncated)
+            return fail(ec, "shutdown");
     }
 };
 
