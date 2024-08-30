@@ -4,9 +4,7 @@ ExternalProject_Add(benchmark
     PREFIX ${CMAKE_BINARY_DIR}/benchmark
     GIT_REPOSITORY https://github.com/google/benchmark
     GIT_TAG v1.8.5
-    CMAKE_ARGS -DBENCHMARK_DOWNLOAD_DEPENDENCIES=on -DCMAKE_BUILD_TYPE=Release
-    CONFIGURE_COMMAND ""  
-    BUILD_COMMAND ""      
+    CMAKE_ARGS -DBENCHMARK_DOWNLOAD_DEPENDENCIES=on -DCMAKE_BUILD_TYPE=Release    
     INSTALL_COMMAND ""    
 )
 
@@ -15,6 +13,6 @@ find_package(OpenSSL REQUIRED)
 
 add_executable(my_benchmark benchmark.cpp)
 
-add_dependencies(my_benchmark benchmark)
+add_dependencies(my_benchmark benchmark boost)
 
 target_link_libraries(my_benchmark ${binary_dir}/src/libbenchmark.a pthread ${OPENSSL_LIBRARIES})
