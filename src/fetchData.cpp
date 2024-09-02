@@ -10,6 +10,7 @@ std::string logLevel, spotBase, usdtFutureBase, coinFutureBase;
 std::string spotTarget, usdtFutureTarget, coinFutureTarget;
 int request_interval;
 
+
 void parseSymbols(std::string &responseBody, std::map<std::string, MarketInfo> *symbolsMap)
 {
     if (responseBody.empty())
@@ -104,8 +105,6 @@ void parseSymbols(std::string &responseBody, std::map<std::string, MarketInfo> *
         (*symbolsMap)[info.symbol] = info;
     }
 }
-
-
 void fail(beast::error_code ec, char const *what) {
     std::cerr << what << ": " << ec.message() << std::endl;
 }
@@ -178,19 +177,19 @@ void session::on_read(beast::error_code ec, std::size_t bytes_transferred) {
 
     if (ec) return fail(ec, "read");
 
-        auto responseBody = res_.body();
-        if (host_ == spotBase)
-        {
-            parseSymbols(responseBody, &exchangeData.spotSymbols);
-        }
-        else if (host_ == usdtFutureBase)
-        {
-            parseSymbols(responseBody, &exchangeData.usdSymbols);
-        }
-        else if (host_ == coinFutureBase)
-        {
-            parseSymbols(responseBody, &exchangeData.coinSymbols);
-        }
+    auto responseBody = res_.body();
+    if (host_ == spotBase)
+    {
+        parseSymbols(responseBody, &exchangeData.spotSymbols);
+    }
+    else if (host_ == usdtFutureBase)
+    {
+        parseSymbols(responseBody, &exchangeData.usdSymbols);
+    }
+    else if (host_ == coinFutureBase)
+    {
+        parseSymbols(responseBody, &exchangeData.coinSymbols);
+    }
 
     beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
 
@@ -199,6 +198,7 @@ void session::on_read(beast::error_code ec, std::size_t bytes_transferred) {
             &session::on_shutdown,
             shared_from_this()));
 }
+
 
 void session::on_shutdown(beast::error_code ec) {
     if (ec == net::error::eof) {
@@ -261,3 +261,4 @@ void fetchEndpoints(const boost::system::error_code&, boost::asio::steady_timer 
     t->expires_at(t->expiry() + boost::asio::chrono::seconds(request_interval));
     t->async_wait(boost::bind(fetchEndpoints, boost::asio::placeholders::error, t, std::ref(ioc), std::ref(ctx)));
 }
+
