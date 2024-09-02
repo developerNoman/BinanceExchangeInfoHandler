@@ -14,21 +14,13 @@ find_package(spdlog)
 find_package(rapidjson)
 find_package(boost)
 
-# add_executable(exchangeHandler
-#  app/main.cpp 
-#  src/fetchData.cpp
-#  src/processQueries.cpp
-#  )
-# target_link_libraries(exchangeHandler PRIVATE ${OPENSSL_LIBRARIES})
 link_libraries(${OPENSSL_LIBRARIES})
 
 add_subdirectory(external/gtest)
 
 add_subdirectory(src)
 add_subdirectory(app)
-# add_subdirectory(benchmark)
-# add_subdirectory(unittest)
+add_subdirectory(BenchMarks)
+add_subdirectory(UnitTest)
 
-# add_subdirectory(UnitTest)
-# add_subdirectory(BenchMarks)
 

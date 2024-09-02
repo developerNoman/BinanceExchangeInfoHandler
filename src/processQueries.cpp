@@ -1,7 +1,7 @@
 #include "processQueries.h"
 using namespace std;
 namespace net = boost::asio;
-
+mutex myMutex;
 
 void display(const string &marketType, const string &instrumentName, const MarketInfo &MarketInfo) {
     spdlog::info("{} Market - Symbol: {}", marketType, MarketInfo.symbol);

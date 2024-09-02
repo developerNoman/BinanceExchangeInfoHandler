@@ -1,4 +1,5 @@
-#include "request.h"
+#include "processData.h"
+#include "marketInfo.h"
 #include "gtest/gtest.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
@@ -9,84 +10,23 @@ using namespace std;
 string spotB, usdtFB, coinFB;
 string spotT, usdtFT, coinFT;
 
-//function to read the config.json file
-void readConfig(string configFile, rapidjson::Document &doc1) {
-    FILE* fp = fopen(configFile.c_str(), "r");
-    if (!fp) {
-        cerr << "Error: unable to open file" << endl;
-        return;
-    }
+void parseSymbols(std::string &responseBody, std::map<std::string, MarketInfo> *symbolsMap);
 
-    char buffer[65536];
-    rapidjson::FileReadStream is(fp, buffer, sizeof(buffer));
-    doc1.ParseStream(is);
+//TestCase to check the data which is get after reading the files, it is about base urls and endpoints
+TEST(ReadConfigTest, CorrectlyReadsConfig) {
+    rapidjson::Document doc1;
+    readConfig("config.json", doc1);
 
-    if (doc1.HasParseError()) {
-        cerr << "Error: JSON parse error" << endl;
-        fclose(fp);
-        return;
-    }
-
-    if (!doc1.IsObject()) {
-        cerr << "Error: JSON is not an object" << endl;
-        fclose(fp);
-        return;
-    }
-
-    if (!doc1.HasMember("exchange_base_url") || !doc1["exchange_base_url"].IsObject()) {
-        cerr << "Error: Missing or invalid 'exchange_base_url' field" << endl;
-        fclose(fp);
-        return;
-    }
-    if (!doc1.HasMember("exchange_endpoints") || !doc1["exchange_endpoints"].IsObject()) {
-        cerr << "Error: Missing or invalid 'exchange_endpoints' field" << endl;
-        fclose(fp);
-        return;
-    }
-
-    const auto& baseUrls = doc1["exchange_base_url"];
-    const auto& endpoints = doc1["exchange_endpoints"];
-
-    if (baseUrls.HasMember("spotBase") && baseUrls["spotBase"].IsString()) {
-        spotB = baseUrls["spotBase"].GetString();
-    } else {
-        cerr << "Error: Missing or invalid 'spotBase' field" << endl;
-    }
-
-    if (baseUrls.HasMember("usdtFutureBase") && baseUrls["usdtFutureBase"].IsString()) {
-        usdtFB = baseUrls["usdtFutureBase"].GetString();
-    } else {
-        cerr << "Error: Missing or invalid 'usdtFutureBase' field" << endl;
-    }
-
-    if (baseUrls.HasMember("coinFutureBase") && baseUrls["coinFutureBase"].IsString()) {
-        coinFB = baseUrls["coinFutureBase"].GetString();
-    } else {
-        cerr << "Error: Missing or invalid 'coinFutureBase' field" << endl;
-    }
-
-    if (endpoints.HasMember("spotTarget") && endpoints["spotTarget"].IsString()) {
-        spotT = endpoints["spotTarget"].GetString();
-    } else {
-        cerr << "Error: Missing or invalid 'spotTarget' field" << endl;
-    }
-
-    if (endpoints.HasMember("usdtFutureTarget") && endpoints["usdtFutureTarget"].IsString()) {
-        usdtFT = endpoints["usdtFutureTarget"].GetString();
-    } else {
-        cerr << "Error: Missing or invalid 'usdtFutureTarget' field" << endl;
-    }
-
-    if (endpoints.HasMember("coinFutureTarget") && endpoints["coinFutureTarget"].IsString()) {
-        coinFT = endpoints["coinFutureTarget"].GetString();
-    } else {
-        cerr << "Error: Missing or invalid 'coinFutureTarget' field" << endl;
-    }
-
-    fclose(fp);
+    EXPECT_EQ(spotB, "api.binance.com");
+    EXPECT_EQ(usdtFB, "fapi.binance.com");
+    EXPECT_EQ(coinFB, "dapi.binance.com");
+    EXPECT_EQ(spotT, "/api/v3/exchangeInfo");
+    EXPECT_EQ(usdtFT, "/fapi/v1/exchangeInfo");
+    EXPECT_EQ(coinFT, "/dapi/v1/exchangeInfo");
 }
 
-//TestCase to check the data which is get after parsing the symbols
+
+// TestCase to check the data which is get after parsing the symbols
 TEST(ParseSymbolsTest, CorrectlyParsesJSON) {
     string jsonString = R"(
     {
@@ -208,20 +148,3 @@ TEST(ParseSymbolsTest, HandlesUnexpectedDataTypes) {
     EXPECT_EQ(itBTC->second.tickSize, "0.01");
     EXPECT_EQ(itBTC->second.stepSize, "0.0001");
 }
-
-//TestCase to check the data which is get after reading the files, it is about base urls and endpoints
-TEST(ReadConfigTest, CorrectlyReadsConfig) {
-    rapidjson::Document doc1;
-    readConfig("config.json", doc1);
-
-    EXPECT_EQ(spotB, "api.binance.com");
-    EXPECT_EQ(usdtFB, "fapi.binance.com");
-    EXPECT_EQ(coinFB, "dapi.binance.com");
-    EXPECT_EQ(spotT, "/api/v3/exchangeInfo");
-    EXPECT_EQ(usdtFT, "/fapi/v1/exchangeInfo");
-    EXPECT_EQ(coinFT, "/dapi/v1/exchangeInfo");
-}
-
-
-
-

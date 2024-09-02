@@ -1,5 +1,5 @@
 #include "benchmark/benchmark.h"
-#include "request.h"
+#include "processData.h"
 #include "spdlog/spdlog.h"
 #include "rapidjson/document.h"
 #include "boost/asio.hpp"
@@ -16,27 +16,27 @@ string spotBase, usdtFutureBase, coinFutureBase;
 string spotTarget, usdtFutureTarget, coinFutureTarget;
 int request_interval;
 
-void readConfig(string configFile, rapidjson::Document &doc1) {
+// void readConfig(string configFile, rapidjson::Document &doc1) {
 
-    FILE* fp = fopen(configFile.c_str(), "r");
-    if (!fp) {
-        cerr << "Error: unable to open file" << endl;
-    }
+//     FILE* fp = fopen(configFile.c_str(), "r");
+//     if (!fp) {
+//         cerr << "Error: unable to open file" << endl;
+//     }
 
-    char buffer[65536];
-    rapidjson::FileReadStream is(fp, buffer, sizeof(buffer));
-    doc1.ParseStream(is);
+//     char buffer[65536];
+//     rapidjson::FileReadStream is(fp, buffer, sizeof(buffer));
+//     doc1.ParseStream(is);
 
-    spotBase = doc1["exchange_base_url"]["spotBase"].GetString();
-    usdtFutureBase = doc1["exchange_base_url"]["usdtFutureBase"].GetString();
-    coinFutureBase = doc1["exchange_base_url"]["coinFutureBase"].GetString();
-    spotTarget = doc1["exchange_endpoints"]["spotTarget"].GetString();
-    usdtFutureTarget = doc1["exchange_endpoints"]["usdtFutureTarget"].GetString();
-    coinFutureTarget = doc1["exchange_endpoints"]["coinFutureTarget"].GetString();
-    request_interval = doc1["request_interval"].GetInt();
+//     spotBase = doc1["exchange_base_url"]["spotBase"].GetString();
+//     usdtFutureBase = doc1["exchange_base_url"]["usdtFutureBase"].GetString();
+//     coinFutureBase = doc1["exchange_base_url"]["coinFutureBase"].GetString();
+//     spotTarget = doc1["exchange_endpoints"]["spotTarget"].GetString();
+//     usdtFutureTarget = doc1["exchange_endpoints"]["usdtFutureTarget"].GetString();
+//     coinFutureTarget = doc1["exchange_endpoints"]["coinFutureTarget"].GetString();
+//     request_interval = doc1["request_interval"].GetInt();
     
-    fclose(fp);
-}
+//     fclose(fp);
+// }
 
 void readQueryFile(const string &queryFile, rapidjson::Document &doc1)
 {

@@ -1,7 +1,7 @@
 #ifndef PROCESSQUERIES_H
 #define PROCESSQUERIES_H
 
-#include "req.h"
+#include "marketInfo.h"
 #include "rapidjson/document.h"
 #include "boost/asio.hpp"
 #include "rapidjson/filereadstream.h"
