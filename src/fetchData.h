@@ -1,7 +1,7 @@
 #ifndef FETCHDATA_H
 #define FETCHDATA_H
 
-#include "req.h"
+#include "marketInfo.h"
 #include "rapidjson/document.h"
 #include "boost/asio.hpp"
 #include "boost/asio/ssl.hpp"
@@ -32,7 +32,30 @@
 #include <map>
 
 namespace net = boost::asio;
-// using boost::asio::ssl;
+
+void fail(beast::error_code ec, char const *what);
+
+class session : public std::enable_shared_from_this<session> {
+    tcp::resolver resolver_;
+    ssl::stream<beast::tcp_stream> stream_;
+    beast::flat_buffer buffer_;
+    http::request<http::empty_body> req_;
+    http::response<http::string_body> res_;
+    std::string host_;
+
+public:
+    explicit session(net::any_io_executor ex, ssl::context &ctx)
+        : resolver_(ex), stream_(ex, ctx) {}
+
+    void run(const char *host, const char *port, const char *target, int version);
+    void on_resolve(beast::error_code ec, tcp::resolver::results_type results);
+    void on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type);
+    void on_handshake(beast::error_code ec);
+    void on_write(beast::error_code ec, std::size_t bytes_transferred);
+    void on_read(beast::error_code ec, std::size_t bytes_transferred);
+    void on_shutdown(beast::error_code ec);
+};
+
 
 void parseSymbols(std::string &responseBody, std::map<std::string, MarketInfo> *symbolsMap);
 

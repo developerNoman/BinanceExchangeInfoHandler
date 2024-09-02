@@ -1,4 +1,4 @@
-#include "req.h"
+#include "processData.h"
 #include "rapidjson/filereadstream.h"
 #include "boost/asio.hpp"
 #include "boost/asio/steady_timer.hpp"
@@ -12,7 +12,6 @@
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/ostream_sink.h"
-#include <mutex>
 #include <thread>
 #include <chrono>
 #include <cstdio>
@@ -25,10 +24,6 @@
 #include <functional>
 using namespace std;
 
-
-void readConfig(const std::string& config_file, rapidjson::Document &doc1);
-void fetchEndpoints(const boost::system::error_code& ec, boost::asio::steady_timer* t, boost::asio::io_context& ioc, boost::asio::ssl::context& ctx);
-void readQueryFileContinuously(const std::string& query_file, boost::asio::io_context& ioc);
 
 int main()
 {

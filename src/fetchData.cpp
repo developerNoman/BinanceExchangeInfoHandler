@@ -5,7 +5,6 @@ using namespace std;
 
 namespace net = boost::asio;
 
-std::mutex myMutex;
 exchangeSymbols exchangeData;
 std::string logLevel, spotBase, usdtFutureBase, coinFutureBase;
 std::string spotTarget, usdtFutureTarget, coinFutureTarget;
