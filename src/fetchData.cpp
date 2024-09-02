@@ -11,10 +11,8 @@ std::string spotTarget, usdtFutureTarget, coinFutureTarget;
 int request_interval;
 
 
-void parseSymbols(std::string &responseBody, std::map<std::string, MarketInfo> *symbolsMap)
-{
-    if (responseBody.empty())
-    {
+void parseSymbols(std::string &responseBody, const std::string &base, exchangeSymbols &exchangeData) {
+    if (responseBody.empty()) {
         cerr << "Error: The response body is empty." << endl;
         return;
     }
@@ -22,89 +20,70 @@ void parseSymbols(std::string &responseBody, std::map<std::string, MarketInfo> *
     rapidjson::Document fullData;
     rapidjson::ParseResult parseResult = fullData.Parse(responseBody.c_str());
 
-    if (!parseResult)
-    {
+    if (!parseResult) {
         cerr << "JSON parse error: " << rapidjson::GetParseError_En(parseResult.Code())
              << " (offset " << parseResult.Offset() << ")" << endl;
         cerr << "Response Body: " << responseBody << endl;
         return;
     }
 
-    if (!fullData.IsObject() || !fullData.HasMember("symbols") || !fullData["symbols"].IsArray())
-    {
+    if (!fullData.IsObject() || !fullData.HasMember("symbols") || !fullData["symbols"].IsArray()) {
         cerr << "Invalid JSON format or missing 'symbols' array." << endl;
         cerr << "Response Body: " << responseBody << endl;
         return;
     }
 
     const auto &symbolsArray = fullData["symbols"];
-    for (const auto &symbol : symbolsArray.GetArray())
-    {
+    for (const auto &symbol : symbolsArray.GetArray()) {
         MarketInfo info;
-        if (symbol.HasMember("symbol") && symbol["symbol"].IsString())
-        {
+        if (symbol.HasMember("symbol") && symbol["symbol"].IsString()) {
             info.symbol = symbol["symbol"].GetString();
-        }
-        else
-        {
+        } else {
             cerr << "Missing or invalid 'symbol' field in a symbol object." << endl;
             continue;
         }
-        if (symbol.HasMember("quoteAsset"))
-        {
-            if (symbol["quoteAsset"].IsString())
-            {
+        if (symbol.HasMember("quoteAsset")) {
+            if (symbol["quoteAsset"].IsString()) {
                 info.quoteAsset = symbol["quoteAsset"].GetString();
-            }
-            else
-            {
+            } else {
                 info.quoteAsset = ""; // Handle unexpected type by setting to empty string
                 cerr << "Invalid 'quoteAsset' field in symbol: " << info.symbol << endl;
             }
-        }
-        else
-        {
+        } else {
             info.quoteAsset = ""; // Handle missing field
         }
-        if (symbol.HasMember("status") && symbol["status"].IsString())
-        {
+        if (symbol.HasMember("status") && symbol["status"].IsString()) {
             info.status = symbol["status"].GetString();
-        }
-        else if (symbol.HasMember("contractStatus") && symbol["contractStatus"].IsString())
-        {
+        } else if (symbol.HasMember("contractStatus") && symbol["contractStatus"].IsString()) {
             info.status = symbol["contractStatus"].GetString();
-        }
-        else
-        {
+        } else {
             cerr << "Missing 'status' or 'contractStatus' in symbol: " << info.symbol << endl;
         }
 
-        if (symbol.HasMember("filters") && symbol["filters"].IsArray())
-        {
-            for (const auto &filter : symbol["filters"].GetArray())
-            {
-                if (filter.HasMember("filterType") && filter["filterType"].IsString())
-                {
-                    string filterType = filter["filterType"].GetString();
-                    if (filterType == "PRICE_FILTER")
-                    {
+        if (symbol.HasMember("filters") && symbol["filters"].IsArray()) {
+            for (const auto &filter : symbol["filters"].GetArray()) {
+                if (filter.HasMember("filterType") && filter["filterType"].IsString()) {
+                    std::string filterType = filter["filterType"].GetString();
+                    if (filterType == "PRICE_FILTER") {
                         info.tickSize = filter.HasMember("tickSize") && filter["tickSize"].IsString() ? filter["tickSize"].GetString() : "";
-                    }
-                    else if (filterType == "LOT_SIZE")
-                    {
+                    } else if (filterType == "LOT_SIZE") {
                         info.stepSize = filter.HasMember("stepSize") && filter["stepSize"].IsString() ? filter["stepSize"].GetString() : "";
                     }
                 }
             }
-        }
-        else
-        {
+        } else {
             cerr << "Missing or invalid 'filters' array in symbol: " << info.symbol << endl;
         }
-
-        (*symbolsMap)[info.symbol] = info;
+        if (base == spotBase) {
+            exchangeData.setSpotSymbol(info.symbol, info);
+        } else if (base == usdtFutureBase) {
+            exchangeData.setUsdSymbol(info.symbol, info);
+        } else if (base == coinFutureBase) {
+            exchangeData.setCoinSymbol(info.symbol, info);
+        }
     }
 }
+
 void fail(beast::error_code ec, char const *what) {
     std::cerr << what << ": " << ec.message() << std::endl;
 }
@@ -172,24 +151,14 @@ void session::on_write(beast::error_code ec, std::size_t bytes_transferred) {
             shared_from_this()));
 }
 
+
 void session::on_read(beast::error_code ec, std::size_t bytes_transferred) {
     boost::ignore_unused(bytes_transferred);
 
     if (ec) return fail(ec, "read");
 
     auto responseBody = res_.body();
-    if (host_ == spotBase)
-    {
-        parseSymbols(responseBody, &exchangeData.spotSymbols);
-    }
-    else if (host_ == usdtFutureBase)
-    {
-        parseSymbols(responseBody, &exchangeData.usdSymbols);
-    }
-    else if (host_ == coinFutureBase)
-    {
-        parseSymbols(responseBody, &exchangeData.coinSymbols);
-    }
+    parseSymbols(responseBody, host_, exchangeData);
 
     beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
 
@@ -198,6 +167,7 @@ void session::on_read(beast::error_code ec, std::size_t bytes_transferred) {
             &session::on_shutdown,
             shared_from_this()));
 }
+
 
 
 void session::on_shutdown(beast::error_code ec) {
@@ -261,4 +231,3 @@ void fetchEndpoints(const boost::system::error_code&, boost::asio::steady_timer 
     t->expires_at(t->expiry() + boost::asio::chrono::seconds(request_interval));
     t->async_wait(boost::bind(fetchEndpoints, boost::asio::placeholders::error, t, std::ref(ioc), std::ref(ctx)));
 }
-

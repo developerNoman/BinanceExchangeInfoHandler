@@ -20,7 +20,7 @@ add_subdirectory(external/gtest)
 
 add_subdirectory(src)
 add_subdirectory(app)
-# add_subdirectory(BenchMarks)
-# add_subdirectory(UnitTest)
+add_subdirectory(UnitTest)
+add_subdirectory(BenchMarks)
 
 

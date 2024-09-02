@@ -1,4 +1,3 @@
-
 #ifndef MARKETINFO_H
 #define MARKETINFO_H
 
@@ -38,14 +37,57 @@ struct MarketInfo {
 
 // Define the exchangeSymbols structure
 class exchangeSymbols {
-public:
+private:
     std::map<std::string, MarketInfo> spotSymbols;
     std::map<std::string, MarketInfo> usdSymbols;
     std::map<std::string, MarketInfo> coinSymbols;
 
+public:
+    void setSpotSymbol(const std::string &symbol, const MarketInfo &info) {
+        spotSymbols[symbol] = info;
+    }
+
+    void setUsdSymbol(const std::string &symbol, const MarketInfo &info) {
+        usdSymbols[symbol] = info;
+    }
+
+    void setCoinSymbol(const std::string &symbol, const MarketInfo &info) {
+        coinSymbols[symbol] = info;
+    }
+
+    const std::map<std::string, MarketInfo>& getSpotSymbols() const {
+        return spotSymbols;
+    }
+
+    const std::map<std::string, MarketInfo>& getUsdSymbols() const {
+        return usdSymbols;
+    }
+
+    const std::map<std::string, MarketInfo>& getCoinSymbols() const {
+        return coinSymbols;
+    }
+    void removeSpotSymbol(const std::string& instrumentName) {
+        auto it = spotSymbols.find(instrumentName);
+        if (it != spotSymbols.end()) {
+            spotSymbols.erase(it);
+        }
+    }
+
+    void removeUsdSymbol(const std::string& instrumentName) {
+        auto it = usdSymbols.find(instrumentName);
+        if (it != usdSymbols.end()) {
+            usdSymbols.erase(it);
+        }
+    }
+
+    void removeCoinSymbol(const std::string& instrumentName) {
+        auto it = coinSymbols.find(instrumentName);
+        if (it != coinSymbols.end()) {
+            coinSymbols.erase(it);
+        }
+    }
 };
 extern exchangeSymbols exchangeData;
 
 
 #endif
-
