@@ -9,53 +9,13 @@
 #include <fstream>
 #include <thread>
 #include <chrono>
+#include <string>
+#include <map>
 
 using namespace std;
 
-string spotBase, usdtFutureBase, coinFutureBase;
-string spotTarget, usdtFutureTarget, coinFutureTarget;
-int request_interval;
-
-// void readConfig(string configFile, rapidjson::Document &doc1) {
-
-//     FILE* fp = fopen(configFile.c_str(), "r");
-//     if (!fp) {
-//         cerr << "Error: unable to open file" << endl;
-//     }
-
-//     char buffer[65536];
-//     rapidjson::FileReadStream is(fp, buffer, sizeof(buffer));
-//     doc1.ParseStream(is);
-
-//     spotBase = doc1["exchange_base_url"]["spotBase"].GetString();
-//     usdtFutureBase = doc1["exchange_base_url"]["usdtFutureBase"].GetString();
-//     coinFutureBase = doc1["exchange_base_url"]["coinFutureBase"].GetString();
-//     spotTarget = doc1["exchange_endpoints"]["spotTarget"].GetString();
-//     usdtFutureTarget = doc1["exchange_endpoints"]["usdtFutureTarget"].GetString();
-//     coinFutureTarget = doc1["exchange_endpoints"]["coinFutureTarget"].GetString();
-//     request_interval = doc1["request_interval"].GetInt();
-    
-//     fclose(fp);
-// }
-
-void readQueryFile(const string &queryFile, rapidjson::Document &doc1)
-{
-    FILE *fp = fopen(queryFile.c_str(), "r");
-    if (!fp){
-        cerr << "Error: unable to open file" << endl;
-        return;
-    }
-
-    char buffer[65536];
-    rapidjson::FileReadStream is(fp, buffer, sizeof(buffer));
-    doc1.ParseStream(is);
-    if (doc1.HasParseError())
-    {
-        cerr << "Error parsing JSON file!" << endl;
-    }
-
-    fclose(fp);
-}
+void readQueryFile(const string &queryFile, rapidjson::Document &doc1);
+void fetchData(const std::string &baseUrl, const std::string &endpoint, net::io_context &ioc, ssl::context &ctx);
 
 //BenchMark to read query file
 static void BenchMark_ReadQuery(benchmark::State& state) {
@@ -66,31 +26,6 @@ static void BenchMark_ReadQuery(benchmark::State& state) {
     }
 }
 BENCHMARK(BenchMark_ReadQuery);
-
-const std::string dummyResponse = R"({
-    "symbols": [
-        {
-            "symbol": "BTCUSDT",
-            "quoteAsset": "USDT",
-            "status": "TRADING",
-            "filters": [
-                {"filterType": "PRICE_FILTER", "tickSize": "0.01"},
-                {"filterType": "LOT_SIZE", "stepSize": "0.001"}
-            ]
-        },
-        {
-            "symbol": "ETHUSDT",
-            "quoteAsset": "USDT",
-            "status": "TRADING",
-            "filters": [
-                {"filterType": "PRICE_FILTER", "tickSize": "0.01"},
-                {"filterType": "LOT_SIZE", "stepSize": "0.001"}
-            ]
-        }
-    ]
-})";
-
-
 
 
 //BenchMark to read config file
@@ -103,13 +38,18 @@ static void BenchMark_ReadConfig(benchmark::State& state) {
 }
 BENCHMARK(BenchMark_ReadConfig);
 
-//Benchmark for the parseSymbols function
-static void BenchMark_ParseSymbols(benchmark::State& state) {
-    std::map<std::string, MarketInfo> symbolsMap;
+//benchmark for fetchdata
+static void BenchMark_FetchData(benchmark::State& state) {
+    boost::asio::io_context ioc;
+    boost::asio::ssl::context ctx{ssl::context::tlsv12_client};
+    load_root_certificates(ctx);
+    ctx.set_verify_mode(ssl::verify_peer);
     for (auto _ : state) {
-        parseSymbols(const_cast<std::string&>(dummyResponse), &symbolsMap);
+        fetchData(spotBase, spotTarget, ioc, ctx);
+        ioc.run();
     }
 }
-BENCHMARK(BenchMark_ParseSymbols);
+BENCHMARK(BenchMark_FetchData);
+
 
 BENCHMARK_MAIN();
