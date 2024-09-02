@@ -21,17 +21,12 @@
 #include <set>
 
 
-
-// Function to display market information
 void display(const std::string &marketType, const std::string &instrumentName, const MarketInfo &MarketInfo);
 
-// Function to process queries from the query file
 void processQueries(const rapidjson::Document &doc);
 
-// Function to read the query JSON file
 void readQueryFile(const std::string &queryFile, rapidjson::Document &doc1);
 
-// Function to continuously read and process the query file
 void readQueryFileContinuously(const std::string &queryFile, boost::asio::io_context &ioc);
 
 #endif 

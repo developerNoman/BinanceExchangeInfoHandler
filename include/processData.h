@@ -49,4 +49,4 @@ void readConfig(const std::string &configFile, rapidjson::Document &doc);
 void fetchEndpoints(const boost::system::error_code &ec, boost::asio::steady_timer *t, boost::asio::io_context &ioc, boost::asio::ssl::context &ctx);
 void readQueryFileContinuously(const std::string &queryFile, boost::asio::io_context &ioc);
 
-#endif 
+#endif
