@@ -42,4 +42,4 @@ void readQueryFile(const std::string &queryFile, rapidjson::Document &doc1);
 // Function to continuously read and process the query file
 void readQueryFileContinuously(const std::string &queryFile, boost::asio::io_context &ioc);
 
-#endif // PROCESSQUERIES_H
+#endif 
