@@ -49,3 +49,4 @@ void fetchCoinFutureData(net::io_context &ioc, ssl::context &ctx);
 void fetchEndpoints(const boost::system::error_code&, boost::asio::steady_timer *t, boost::asio::io_context &ioc, ssl::context &ctx);
 
 #endif // FETCHDATA_H
+
