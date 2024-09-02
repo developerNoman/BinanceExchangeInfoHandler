@@ -2,14 +2,10 @@
 #define PROCESSQUERIES_H
 
 #include "marketInfo.h"
-#include "rapidjson/document.h"
-#include "boost/asio.hpp"
 #include "rapidjson/filereadstream.h"
-#include "boost/asio.hpp"
 #include "boost/asio/steady_timer.hpp"
 #include "boost/bind/bind.hpp"
-#include "spdlog/spdlog.h"         
-#include "rapidjson/document.h"    
+#include "spdlog/spdlog.h"            
 #include "rapidjson/writer.h"      
 #include "rapidjson/stringbuffer.h" 
 #include "rapidjson/istreamwrapper.h" 
@@ -17,18 +13,14 @@
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/ostream_sink.h"
-#include <mutex>
 #include <thread>
 #include <chrono>
 #include <cstdio>
-#include <string>
 #include <vector>
-#include <map>
-#include <iostream>
 #include <fstream>
 #include <set>
-#include <string>
-#include <map>
+
+
 
 // Function to display market information
 void display(const std::string &marketType, const std::string &instrumentName, const MarketInfo &MarketInfo);
