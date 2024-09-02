@@ -1,14 +1,9 @@
+
 #include "fetchData.h"
-#include "boost/beast/core.hpp"
-#include "boost/beast/http.hpp"
-#include "boost/beast/ssl.hpp"
-#include "boost/asio/strand.hpp"
-#include "boost/asio/ip/tcp.hpp"
 
 using namespace std;
+
 namespace net = boost::asio;
-namespace beast = boost::beast;
-namespace http = beast::http;
 
 std::mutex myMutex;
 exchangeSymbols exchangeData;
@@ -16,73 +11,101 @@ std::string logLevel, spotBase, usdtFutureBase, coinFutureBase;
 std::string spotTarget, usdtFutureTarget, coinFutureTarget;
 int request_interval;
 
-void parseSymbols(const std::string &responseBody, std::map<std::string, MarketInfo> *symbolsMap) {
-    if (responseBody.empty()) {
-        std::cerr << "Error: The response body is empty." << std::endl;
+void parseSymbols(std::string &responseBody, std::map<std::string, MarketInfo> *symbolsMap)
+{
+    if (responseBody.empty())
+    {
+        cerr << "Error: The response body is empty." << endl;
         return;
     }
 
     rapidjson::Document fullData;
     rapidjson::ParseResult parseResult = fullData.Parse(responseBody.c_str());
 
-    if (!parseResult) {
-        std::cerr << "JSON parse error: " << rapidjson::GetParseError_En(parseResult.Code())
-            << " (offset " << parseResult.Offset() << ")" << std::endl;
-        std::cerr << "Response Body: " << responseBody << std::endl;
+    if (!parseResult)
+    {
+        cerr << "JSON parse error: " << rapidjson::GetParseError_En(parseResult.Code())
+             << " (offset " << parseResult.Offset() << ")" << endl;
+        cerr << "Response Body: " << responseBody << endl;
         return;
     }
 
-    if (!fullData.IsObject() || !fullData.HasMember("symbols") || !fullData["symbols"].IsArray()) {
-        std::cerr << "Invalid JSON format or missing 'symbols' array." << std::endl;
-        std::cerr << "Response Body: " << responseBody << std::endl;
+    if (!fullData.IsObject() || !fullData.HasMember("symbols") || !fullData["symbols"].IsArray())
+    {
+        cerr << "Invalid JSON format or missing 'symbols' array." << endl;
+        cerr << "Response Body: " << responseBody << endl;
         return;
     }
 
     const auto &symbolsArray = fullData["symbols"];
-    for (const auto &symbol : symbolsArray.GetArray()) {
+    for (const auto &symbol : symbolsArray.GetArray())
+    {
         MarketInfo info;
-        if (symbol.HasMember("symbol") && symbol["symbol"].IsString()) {
+        if (symbol.HasMember("symbol") && symbol["symbol"].IsString())
+        {
             info.symbol = symbol["symbol"].GetString();
-        } else {
-            std::cerr << "Missing or invalid 'symbol' field in a symbol object." << std::endl;
+        }
+        else
+        {
+            cerr << "Missing or invalid 'symbol' field in a symbol object." << endl;
             continue;
         }
-        if (symbol.HasMember("quoteAsset")) {
-            if (symbol["quoteAsset"].IsString()) {
+        if (symbol.HasMember("quoteAsset"))
+        {
+            if (symbol["quoteAsset"].IsString())
+            {
                 info.quoteAsset = symbol["quoteAsset"].GetString();
-            } else {
-                info.quoteAsset = ""; // Handle unexpected type by setting to empty string
-                std::cerr << "Invalid 'quoteAsset' field in symbol: " << info.symbol << std::endl;
             }
-        } else {
+            else
+            {
+                info.quoteAsset = ""; // Handle unexpected type by setting to empty string
+                cerr << "Invalid 'quoteAsset' field in symbol: " << info.symbol << endl;
+            }
+        }
+        else
+        {
             info.quoteAsset = ""; // Handle missing field
         }
-        if (symbol.HasMember("status") && symbol["status"].IsString()) {
+        if (symbol.HasMember("status") && symbol["status"].IsString())
+        {
             info.status = symbol["status"].GetString();
-        } else if (symbol.HasMember("contractStatus") && symbol["contractStatus"].IsString()) {
+        }
+        else if (symbol.HasMember("contractStatus") && symbol["contractStatus"].IsString())
+        {
             info.status = symbol["contractStatus"].GetString();
-        } else {
-            std::cerr << "Missing 'status' or 'contractStatus' in symbol: " << info.symbol << std::endl;
+        }
+        else
+        {
+            cerr << "Missing 'status' or 'contractStatus' in symbol: " << info.symbol << endl;
         }
 
-        if (symbol.HasMember("filters") && symbol["filters"].IsArray()) {
-            for (const auto &filter : symbol["filters"].GetArray()) {
-                if (filter.HasMember("filterType") && filter["filterType"].IsString()) {
-                    std::string filterType = filter["filterType"].GetString();
-                    if (filterType == "PRICE_FILTER") {
+        if (symbol.HasMember("filters") && symbol["filters"].IsArray())
+        {
+            for (const auto &filter : symbol["filters"].GetArray())
+            {
+                if (filter.HasMember("filterType") && filter["filterType"].IsString())
+                {
+                    string filterType = filter["filterType"].GetString();
+                    if (filterType == "PRICE_FILTER")
+                    {
                         info.tickSize = filter.HasMember("tickSize") && filter["tickSize"].IsString() ? filter["tickSize"].GetString() : "";
-                    } else if (filterType == "LOT_SIZE") {
+                    }
+                    else if (filterType == "LOT_SIZE")
+                    {
                         info.stepSize = filter.HasMember("stepSize") && filter["stepSize"].IsString() ? filter["stepSize"].GetString() : "";
                     }
                 }
             }
-        } else {
-            std::cerr << "Missing or invalid 'filters' array in symbol: " << info.symbol << std::endl;
+        }
+        else
+        {
+            cerr << "Missing or invalid 'filters' array in symbol: " << info.symbol << endl;
         }
 
         (*symbolsMap)[info.symbol] = info;
     }
 }
+
 
 void fail(beast::error_code ec, char const *what) {
     std::cerr << what << ": " << ec.message() << std::endl;
@@ -156,14 +179,19 @@ void session::on_read(beast::error_code ec, std::size_t bytes_transferred) {
 
     if (ec) return fail(ec, "read");
 
-    auto responseBody = res_.body();
-    if (host_ == spotBase) {
-        parseSymbols(responseBody, &exchangeData.spotSymbols);
-    } else if (host_ == usdtFutureBase) {
-        parseSymbols(responseBody, &exchangeData.usdSymbols);
-    } else if (host_ == coinFutureBase) {
-        parseSymbols(responseBody, &exchangeData.coinSymbols);
-    }
+        auto responseBody = res_.body();
+        if (host_ == spotBase)
+        {
+            parseSymbols(responseBody, &exchangeData.spotSymbols);
+        }
+        else if (host_ == usdtFutureBase)
+        {
+            parseSymbols(responseBody, &exchangeData.usdSymbols);
+        }
+        else if (host_ == coinFutureBase)
+        {
+            parseSymbols(responseBody, &exchangeData.coinSymbols);
+        }
 
     beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
 
@@ -200,33 +228,37 @@ void readConfig(const std::string &configFile, rapidjson::Document &doc) {
     usdtFutureTarget = doc["exchange_endpoints"]["usdtFutureTarget"].GetString();
     coinFutureTarget = doc["exchange_endpoints"]["coinFutureTarget"].GetString();
     request_interval = doc["request_interval"].GetInt();
-
+    
     fclose(fp);
 }
 
+// Function to fetch data from the API
 void fetchData(const std::string &baseUrl, const std::string &endpoint, net::io_context &ioc, ssl::context &ctx) {
-    std::make_shared<session>(ioc, ctx, baseUrl, endpoint)->run();
+    spdlog::info("Fetching data from baseUrl: {}, endpoint: {}", baseUrl, endpoint);
+    auto sessionPtr = std::make_shared<session>(net::make_strand(ioc), ctx);
+    sessionPtr->run(baseUrl.c_str(), "443", endpoint.c_str(), 11);
 }
 
+// Function to handle spot data
 void fetchSpotData(net::io_context &ioc, ssl::context &ctx) {
     fetchData(spotBase, spotTarget, ioc, ctx);
 }
 
+// Function to handle USD future data
 void fetchUsdFutureData(net::io_context &ioc, ssl::context &ctx) {
     fetchData(usdtFutureBase, usdtFutureTarget, ioc, ctx);
 }
 
+// Function to handle coin future data
 void fetchCoinFutureData(net::io_context &ioc, ssl::context &ctx) {
     fetchData(coinFutureBase, coinFutureTarget, ioc, ctx);
 }
 
+// Callback function for the timer
 void fetchEndpoints(const boost::system::error_code&, boost::asio::steady_timer *t, boost::asio::io_context &ioc, ssl::context &ctx) {
     fetchSpotData(ioc, ctx);
     fetchUsdFutureData(ioc, ctx);
     fetchCoinFutureData(ioc, ctx);
-    t->expires_after(std::chrono::seconds(request_interval));
-    t->async_wait(boost::asio::bind_executor(ioc.get_executor(), 
-        [&ioc, &ctx](const boost::system::error_code& e) {
-            fetchEndpoints(e, nullptr, ioc, ctx);
-        }));
+    t->expires_at(t->expiry() + boost::asio::chrono::seconds(request_interval));
+    t->async_wait(boost::bind(fetchEndpoints, boost::asio::placeholders::error, t, std::ref(ioc), std::ref(ctx)));
 }
