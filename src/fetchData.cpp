@@ -46,11 +46,11 @@ void parseSymbols(std::string &responseBody, const std::string &base, exchangeSy
             if (symbol["quoteAsset"].IsString()) {
                 info.quoteAsset = symbol["quoteAsset"].GetString();
             } else {
-                info.quoteAsset = ""; // Handle unexpected type by setting to empty string
+                info.quoteAsset = ""; 
                 cerr << "Invalid 'quoteAsset' field in symbol: " << info.symbol << endl;
             }
         } else {
-            info.quoteAsset = ""; // Handle missing field
+            info.quoteAsset = "";
         }
         if (symbol.HasMember("status") && symbol["status"].IsString()) {
             info.status = symbol["status"].GetString();
