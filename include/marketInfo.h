@@ -24,9 +24,9 @@ namespace net = boost::asio;
 namespace ssl = boost::asio::ssl;
 using tcp = boost::asio::ip::tcp;
 
-
-// Define the MarketInfo structure
-struct MarketInfo {
+// Defined the MarketInfo structure
+struct MarketInfo
+{
     std::string symbol;
     std::string quoteAsset;
     std::string status;
@@ -34,59 +34,71 @@ struct MarketInfo {
     std::string stepSize;
 };
 
-// Define the exchangeSymbols structure
-class exchangeSymbols {
+// Defined the exchangeSymbols structure
+class exchangeSymbols
+{
 private:
     std::map<std::string, MarketInfo> spotSymbols;
     std::map<std::string, MarketInfo> usdSymbols;
     std::map<std::string, MarketInfo> coinSymbols;
 
 public:
-    void setSpotSymbol(const std::string &symbol, const MarketInfo &info) {
+    void setSpotSymbol(const std::string &symbol, const MarketInfo &info)
+    {
         spotSymbols[symbol] = info;
     }
 
-    void setUsdSymbol(const std::string &symbol, const MarketInfo &info) {
+    void setUsdSymbol(const std::string &symbol, const MarketInfo &info)
+    {
         usdSymbols[symbol] = info;
     }
 
-    void setCoinSymbol(const std::string &symbol, const MarketInfo &info) {
+    void setCoinSymbol(const std::string &symbol, const MarketInfo &info)
+    {
         coinSymbols[symbol] = info;
     }
 
-    const std::map<std::string, MarketInfo>& getSpotSymbols() const {
+    const std::map<std::string, MarketInfo> &getSpotSymbols() const
+    {
         return spotSymbols;
     }
 
-    const std::map<std::string, MarketInfo>& getUsdSymbols() const {
+    const std::map<std::string, MarketInfo> &getUsdSymbols() const
+    {
         return usdSymbols;
     }
 
-    const std::map<std::string, MarketInfo>& getCoinSymbols() const {
+    const std::map<std::string, MarketInfo> &getCoinSymbols() const
+    {
         return coinSymbols;
     }
-    void removeSpotSymbol(const std::string& instrumentName) {
+    void removeSpotSymbol(const std::string &instrumentName)
+    {
         auto it = spotSymbols.find(instrumentName);
-        if (it != spotSymbols.end()) {
+        if (it != spotSymbols.end())
+        {
             spotSymbols.erase(it);
         }
     }
 
-    void removeUsdSymbol(const std::string& instrumentName) {
+    void removeUsdSymbol(const std::string &instrumentName)
+    {
         auto it = usdSymbols.find(instrumentName);
-        if (it != usdSymbols.end()) {
+        if (it != usdSymbols.end())
+        {
             usdSymbols.erase(it);
         }
     }
 
-    void removeCoinSymbol(const std::string& instrumentName) {
+    void removeCoinSymbol(const std::string &instrumentName)
+    {
         auto it = coinSymbols.find(instrumentName);
-        if (it != coinSymbols.end()) {
+        if (it != coinSymbols.end())
+        {
             coinSymbols.erase(it);
         }
     }
 };
 extern exchangeSymbols exchangeData;
-
 
 #endif

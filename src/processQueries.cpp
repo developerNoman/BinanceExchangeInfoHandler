@@ -1,8 +1,11 @@
 #include "processQueries.h"
+
 using namespace std;
 namespace net = boost::asio;
+
 mutex myMutex;
 
+// function to display the marketData
 void display(const string &marketType, const string &instrumentName, const MarketInfo &MarketInfo)
 {
     spdlog::info("{} Market - Symbol: {}", marketType, MarketInfo.symbol);
@@ -11,6 +14,8 @@ void display(const string &marketType, const string &instrumentName, const Marke
     spdlog::info("Tick Size: {}", MarketInfo.tickSize);
     spdlog::info("Step Size: {}", MarketInfo.stepSize);
 }
+
+// map to handle the id comparison
 map<string, map<int, int>> idOccurrences;
 
 // method to process the queries from the query file
@@ -232,6 +237,7 @@ void processQueries(const rapidjson::Document &doc)
 
     spdlog::info("Processed queries and appended results to file.");
 }
+
 // reading the query.json file
 void readQueryFile(const string &queryFile, rapidjson::Document &doc1)
 {
