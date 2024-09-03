@@ -43,7 +43,7 @@ private:
     std::map<std::string, MarketInfo> coinSymbols;
 
 public:
-    void setSpotSymbol(const std::string &symbol, const MarketInfo &info)
+      void setSpotSymbol(const std::string &symbol, const MarketInfo &info)
     {
         spotSymbols[symbol] = info;
     }
@@ -74,28 +74,28 @@ public:
     }
     void removeSpotSymbol(const std::string &instrumentName)
     {
-        auto it = spotSymbols.find(instrumentName);
-        if (it != spotSymbols.end())
+        auto data = spotSymbols.find(instrumentName);
+        if (data != spotSymbols.end())
         {
-            spotSymbols.erase(it);
+            spotSymbols.erase(data);
         }
     }
 
     void removeUsdSymbol(const std::string &instrumentName)
     {
-        auto it = usdSymbols.find(instrumentName);
-        if (it != usdSymbols.end())
+        auto data = usdSymbols.find(instrumentName);
+        if (data != usdSymbols.end())
         {
-            usdSymbols.erase(it);
+            usdSymbols.erase(data);
         }
     }
 
     void removeCoinSymbol(const std::string &instrumentName)
     {
-        auto it = coinSymbols.find(instrumentName);
-        if (it != coinSymbols.end())
+        auto data = coinSymbols.find(instrumentName);
+        if (data != coinSymbols.end())
         {
-            coinSymbols.erase(it);
+            coinSymbols.erase(data);
         }
     }
 };
