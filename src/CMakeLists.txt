@@ -9,7 +9,6 @@ add_library(exchangeLibrary STATIC ${LIB_SOURCES})
 add_dependencies(exchangeLibrary rapidjson boost spdlog)
 target_include_directories(exchangeLibrary PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
-ExternalProject_Get_Property(boost source_dir)
 
 target_include_directories(exchangeLibrary PUBLIC ${source_dir}/libs/beast/include)
 target_include_directories(exchangeLibrary PUBLIC ${source_dir}/libs/asio/include)
