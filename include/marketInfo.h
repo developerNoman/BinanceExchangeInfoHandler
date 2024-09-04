@@ -43,7 +43,7 @@ private:
     std::map<std::string, MarketInfo> coinSymbols;
 
 public:
-      void setSpotSymbol(const std::string &symbol, const MarketInfo &info)
+    void setSpotSymbol(const std::string &symbol, const MarketInfo &info)
     {
         spotSymbols[symbol] = info;
     }
