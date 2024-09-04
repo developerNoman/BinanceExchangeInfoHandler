@@ -6,7 +6,7 @@ int main()
 {
     rapidjson::Document doc1;
     readConfig("config.json", doc1);
-    spdlog::info("Configuration loaded: spotBase={}, usdtFutureBase={}, coinFutureBase={}", spotBase, usdtFutureBase, coinFutureBase);
+    spdlog::debug("Configuration loaded: spotBase={}, usdtFutureBase={}, coinFutureBase={}", spotBase, usdtFutureBase, coinFutureBase);
 
     ostringstream json_stream;
     auto console_sink = make_shared<spdlog::sinks::stdout_color_sink_mt>();
@@ -17,7 +17,7 @@ int main()
     spdlog::set_default_logger(logger);
     spdlog::flush_every(chrono::seconds(1));
 
-    spdlog::info("Logger initialized with level: {}", logLevel);
+    spdlog::debug("Logger initialized with level: {}", logLevel);
 
     boost::asio::io_context ioc;
 
@@ -25,8 +25,8 @@ int main()
     load_root_certificates(ctx);
     ctx.set_verify_mode(boost::asio::ssl::verify_peer);
 
-    boost::asio::steady_timer t(ioc, boost::asio::chrono::seconds(request_interval));
-    t.async_wait(boost::bind(fetchEndpoints, boost::asio::placeholders::error, &t, ref(ioc), ref(ctx)));
+    boost::asio::steady_timer fetchTimer(ioc, boost::asio::chrono::seconds(request_interval));
+    fetchTimer.async_wait(boost::bind(fetchEndpoints, boost::asio::placeholders::error, &fetchTimer, ref(ioc), ref(ctx)));
 
     thread queryThread(readQueryFileContinuously, "query.json", ref(ioc));
     ioc.run();

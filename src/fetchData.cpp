@@ -277,11 +277,11 @@ void fetchCoinFutureData(net::io_context &ioc, ssl::context &ctx)
 }
 
 // Callback function for the timer
-void fetchEndpoints(const boost::system::error_code &, boost::asio::steady_timer *t, boost::asio::io_context &ioc, ssl::context &ctx)
+void fetchEndpoints(const boost::system::error_code &, boost::asio::steady_timer *fetchTimer, boost::asio::io_context &ioc, ssl::context &ctx)
 {
     fetchSpotData(ioc, ctx);
     fetchUsdFutureData(ioc, ctx);
     fetchCoinFutureData(ioc, ctx);
-    t->expires_at(t->expiry() + boost::asio::chrono::seconds(request_interval));
-    t->async_wait(boost::bind(fetchEndpoints, boost::asio::placeholders::error, t, ref(ioc), ref(ctx)));
+    fetchTimer->expires_at(fetchTimer->expiry() + boost::asio::chrono::seconds(request_interval));
+    fetchTimer->async_wait(boost::bind(fetchEndpoints, boost::asio::placeholders::error, fetchTimer, ref(ioc), ref(ctx)));
 }

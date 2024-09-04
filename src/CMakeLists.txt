@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 3.10)
-project(BinanceExchangeInfoHandler)
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(LIB_SOURCES fetchData.cpp processQueries.cpp)
 add_library(exchangeLibrary STATIC ${LIB_SOURCES})
+
+find_package(spdlog REQUIRED)
+find_package(rapidjson REQUIRED)
+find_package(boost REQUIRED)
+
 add_dependencies(exchangeLibrary rapidjson boost spdlog)
 target_include_directories(exchangeLibrary PUBLIC ${CMAKE_SOURCE_DIR}/include)
 

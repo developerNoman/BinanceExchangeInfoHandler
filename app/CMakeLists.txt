@@ -4,8 +4,8 @@ project(BinanceExchangeInfoHandler)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-add_executable(exchangeHandler main.cpp)
+add_executable(${PROJECT_NAME} main.cpp)
 
-add_dependencies(exchangeHandler spdlog rapidjson boost)
+add_dependencies(${PROJECT_NAME} spdlog rapidjson boost)
 
-target_link_libraries(exchangeHandler exchangeLibrary)
+target_link_libraries(${PROJECT_NAME} exchangeLibrary)
