@@ -1,7 +1,6 @@
 #include "processQueries.h"
 
 using namespace std;
-namespace net = boost::asio;
 
 mutex myMutex;
 

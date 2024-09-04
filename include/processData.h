@@ -19,8 +19,6 @@
 #include <iostream>
 #include <fstream>
 
-namespace net = boost::asio;
-
 extern std::string logLevel;
 extern std::string spotBase, usdtFutureBase, coinFutureBase;
 extern std::string spotTarget, usdtFutureTarget, coinFutureTarget;

@@ -3,8 +3,6 @@
 
 using namespace std;
 
-namespace net = boost::asio;
-
 exchangeSymbols exchangeData;
 string logLevel, spotBase, usdtFutureBase, coinFutureBase;
 string spotTarget, usdtFutureTarget, coinFutureTarget;
@@ -140,7 +138,8 @@ void session::run(const char *host, const char *port, const char *target, int ve
 
 void session::onResolve(beast::error_code ec, tcp::resolver::results_type results)
 {
-    if (ec){
+    if (ec)
+    {
         return fail(ec, "resolve");
     }
     beast::get_lowest_layer(stream_).expires_after(chrono::seconds(30));
@@ -154,7 +153,8 @@ void session::onResolve(beast::error_code ec, tcp::resolver::results_type result
 
 void session::onConnect(beast::error_code ec, tcp::resolver::results_type::endpoint_type)
 {
-    if (ec){
+    if (ec)
+    {
         return fail(ec, "connect");
     }
     beast::get_lowest_layer(stream_).expires_after(chrono::seconds(30));
@@ -168,7 +168,8 @@ void session::onConnect(beast::error_code ec, tcp::resolver::results_type::endpo
 
 void session::onHandshake(beast::error_code ec)
 {
-    if (ec){
+    if (ec)
+    {
         return fail(ec, "handshake");
     }
     beast::get_lowest_layer(stream_).expires_after(chrono::seconds(30));
@@ -183,7 +184,8 @@ void session::onWrite(beast::error_code ec, size_t bytes_transferred)
 {
     boost::ignore_unused(bytes_transferred);
 
-    if (ec){
+    if (ec)
+    {
         return fail(ec, "write");
     }
     http::async_read(stream_, buffer_, res_,
@@ -196,7 +198,8 @@ void session::onRead(beast::error_code ec, size_t bytes_transferred)
 {
     boost::ignore_unused(bytes_transferred);
 
-    if (ec){
+    if (ec)
+    {
         return fail(ec, "read");
     }
 
