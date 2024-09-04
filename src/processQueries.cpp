@@ -81,7 +81,7 @@ void processQueries(const rapidjson::Document &doc)
         rapidjson::Value resultObj(rapidjson::kObjectType);
         resultObj.AddMember("instrument_name", rapidjson::Value(instrumentName.c_str(), allocator), allocator);
         resultObj.AddMember("market_type", rapidjson::Value(marketType.c_str(), allocator), allocator);
-        cout << "top of process query";
+
         if (queryType == "GET")
         {
             if (marketType == "SPOT")
