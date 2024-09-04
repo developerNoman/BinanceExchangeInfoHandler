@@ -9,4 +9,4 @@ ExternalProject_Add(
     INSTALL_COMMAND ""
 )
 ExternalProject_Get_Property(spdlog source_dir)
-include_directories(${source_dir}/include)
+set(spdlog_source_dir ${source_dir}/include)

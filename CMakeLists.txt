@@ -10,9 +10,9 @@ include_directories(${OPENSSL_INCLUDE_DIR})
 include_directories(include)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake-modules/")
-find_package(spdlog)
-find_package(rapidjson)
-find_package(boost)
+find_package(spdlog REQUIRED)
+find_package(rapidjson REQUIRED)
+find_package(boost REQUIRED)
 
 link_libraries(${OPENSSL_LIBRARIES})
 

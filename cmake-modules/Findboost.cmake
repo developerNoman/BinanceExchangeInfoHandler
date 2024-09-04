@@ -8,5 +8,5 @@ ExternalProject_Add(
     BUILD_COMMAND ""
     INSTALL_COMMAND ""
 )
-
 ExternalProject_Get_Property(boost source_dir)
+set(boost_source_dir ${source_dir})
