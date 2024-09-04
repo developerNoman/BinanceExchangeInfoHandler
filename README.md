@@ -10,9 +10,9 @@
 5. Run the command: `cmake ..`
 6. Run the command: `make -j`
 7. In docker, build image `sudo docker build -t myexchangedata .` and then run the container with volume mapping `sudo docker run -it -v.:/app --name mycontainer myexchangedata`
-7. Run main executables: `./exchangeHandler`
-8. Run Unit Tests: `./UnitTest/my_unitTests`
-9. Run Benchmarks: `./BenchMarks/my_benchmark`
+7. Run main executables: `./BinanceExchangeInfoHandler`
+8. Run Unit Tests: `./UnitTest/unitTests`
+9. Run Benchmarks: `./BenchMarks/BenchMark`
 
 ##  How to build and run the executables
 
@@ -20,6 +20,6 @@
 mkdir build
 cd build
 cmake ..
-make
-./exchangeHandler or cd UnitTest ./my_unitTests or cd BenchMarks ./my_benchmark
+make -j
+./BinanceExchangeInfoHandler or cd UnitTest ./unitTests or cd BenchMarks ./BenchMark
 ```
