@@ -72,7 +72,7 @@ void processQueries(const rapidjson::Document &doc)
             continue;
         }
 
-        spdlog::info("Processing query ID: {}, Market Type: {}", queryID, marketType);
+        spdlog::debug("Processing query ID: {}, Market Type: {}", queryID, marketType);
 
         string queryType = query["query_type"].GetString();
         string instrumentName = query["instrument_name"].GetString();
@@ -234,7 +234,7 @@ void processQueries(const rapidjson::Document &doc)
     resultDoc.Accept(writer);
     ofs.close();
 
-    spdlog::info("Processed queries and appended results to file.");
+    spdlog::debug("Processed queries and appended results to file.");
 }
 
 // reading the query.json file

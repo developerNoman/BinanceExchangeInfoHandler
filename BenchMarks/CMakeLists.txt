@@ -1,16 +1,8 @@
-include(ExternalProject)
+cmake_minimum_required(VERSION 3.10)
+project(BenchMark)
 
-ExternalProject_Add(benchmark
-    PREFIX ${CMAKE_BINARY_DIR}/benchmark
-    URL https://github.com/google/benchmark/archive/refs/tags/v1.9.0.tar.gz
-    CMAKE_ARGS -DBENCHMARK_DOWNLOAD_DEPENDENCIES=on -DCMAKE_BUILD_TYPE=Release    
-    INSTALL_COMMAND ""    
-)
+find_package(benchmark REQUIRED)
+add_executable(${PROJECT_NAME} benchmark.cpp)
 
-ExternalProject_Get_Property(benchmark binary_dir)
-
-
-add_executable(my_benchmark benchmark.cpp)
-
-add_dependencies(my_benchmark benchmark boost)
-target_link_libraries(my_benchmark ${binary_dir}/src/libbenchmark.a pthread exchangeLibrary)
+add_dependencies(${PROJECT_NAME} benchmark boost)
+target_link_libraries(${PROJECT_NAME} ${binary_dir}/src/libbenchmark.a pthread exchangeLibrary)

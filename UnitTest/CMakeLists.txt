@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
-project(BinanceExchangeHandler)
+project(unitTests)
 
-add_executable(my_unitTests unitTest.cpp)
+add_executable(${PROJECT_NAME} unitTest.cpp)
 
-add_dependencies(my_unitTests gtest boost rapidjson spdlog)
+add_dependencies(${PROJECT_NAME} gtest boost rapidjson spdlog)
 
-target_link_libraries(my_unitTests gtest gtest_main exchangeLibrary pthread)
+target_link_libraries(${PROJECT_NAME} gtest gtest_main exchangeLibrary pthread)
