@@ -2,14 +2,6 @@
 #define PROCESSDATA_H
 
 #include "example/common/root_certificates.hpp"
-#include "boost/beast/core.hpp"
-#include "boost/beast/http.hpp"
-#include "boost/beast/version.hpp"
-#include "boost/asio/ssl.hpp"
-#include "boost/asio/strand.hpp"
-#include "boost/asio/io_context.hpp"
-#include "boost/asio/ip/tcp.hpp"
-#include "rapidjson/error/en.h"
 #include "rapidjson/filereadstream.h"
 #include "boost/asio.hpp"
 #include "boost/asio/steady_timer.hpp"
@@ -24,17 +16,8 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/ostream_sink.h"
 #include <thread>
-#include <chrono>
-#include <cstdio>
-#include <memory>
-#include <mutex>
-#include <string>
-#include <vector>
-#include <map>
 #include <iostream>
 #include <fstream>
-#include <set>
-#include <functional>
 
 namespace net = boost::asio;
 
