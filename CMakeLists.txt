@@ -13,8 +13,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake-modules/")
 
 link_libraries(${OPENSSL_LIBRARIES})
 
-add_subdirectory(external/gtest)
-
 add_subdirectory(src)
 add_subdirectory(app)
 
