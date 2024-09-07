@@ -30,18 +30,13 @@ public:
     void onShutdown(beast::error_code ec);
 };
 
+// functions that are used to process the data from endpoints
 void parseSymbols(std::string &responseBody, std::map<std::string, MarketInfo> *symbolsMap);
-
 void readConfig(const std::string &configFile, rapidjson::Document &doc);
-
 void fetchData(const std::string &baseUrl, const std::string &endpoint, net::io_context &ioc, ssl::context &ctx);
-
 void fetchSpotData(net::io_context &ioc, ssl::context &ctx);
-
 void fetchUsdFutureData(net::io_context &ioc, ssl::context &ctx);
-
 void fetchCoinFutureData(net::io_context &ioc, ssl::context &ctx);
-
 void fetchEndpoints(const boost::system::error_code &, boost::asio::steady_timer *t, boost::asio::io_context &ioc, ssl::context &ctx);
 
 #endif

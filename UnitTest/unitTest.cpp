@@ -9,7 +9,15 @@ using namespace std;
 
 void parseSymbols(string &responseBody, const string &base, exchangeSymbols &exchangeData);
 void readQueryFile(const string &queryFile, rapidjson::Document &doc1);
-void display(const string &marketType, const string &instrumentName, const MarketInfo &MarketInfo);
+
+void display(const string &marketType, const string &instrumentName, const MarketInfo &MarketInfo)
+{
+    spdlog::info("{} Market - Symbol: {}", marketType, MarketInfo.symbol);
+    spdlog::info("Quote Asset: {}", MarketInfo.quoteAsset);
+    spdlog::info("Status: {}", MarketInfo.status);
+    spdlog::info("Tick Size: {}", MarketInfo.tickSize);
+    spdlog::info("Step Size: {}", MarketInfo.stepSize);
+}
 
 extern exchangeSymbols exchangeData;
 
