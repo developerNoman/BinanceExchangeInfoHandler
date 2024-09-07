@@ -13,11 +13,25 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake-modules/")
 
 link_libraries(${OPENSSL_LIBRARIES})
 
-add_subdirectory(external/gtest)
-
 add_subdirectory(src)
 add_subdirectory(app)
-add_subdirectory(UnitTest)
-add_subdirectory(BenchMarks)
+
+option(ENABLE_UNITTEST "Build unit tests" ON)
+
+option(ENABLE_BENCHMARK "Build benchmarks" ON)
+
+option(ENABLE_BOTH "Build unittests and benchmarks" ON)
+
+
+if(ENABLE_BOTH)
+    if(ENABLE_UNITTEST)
+        add_subdirectory(UnitTest)
+    endif()
+
+    if(ENABLE_BENCHMARK)
+        add_subdirectory(BenchMarks)
+    endif()
+endif()
+
 
 
