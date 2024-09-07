@@ -79,32 +79,10 @@ public:
     {
         return coinSymbols;
     }
-    void removeSpotSymbol(const std::string &instrumentName)
-    {
-        auto data = spotSymbols.find(instrumentName);
-        if (data != spotSymbols.end())
-        {
-            spotSymbols.erase(data);
-        }
-    }
 
-    void removeUsdSymbol(const std::string &instrumentName)
-    {
-        auto data = usdSymbols.find(instrumentName);
-        if (data != usdSymbols.end())
-        {
-            usdSymbols.erase(data);
-        }
-    }
-
-    void removeCoinSymbol(const std::string &instrumentName)
-    {
-        auto data = coinSymbols.find(instrumentName);
-        if (data != coinSymbols.end())
-        {
-            coinSymbols.erase(data);
-        }
-    }
+    void removeSpotSymbol(const std::string &instrumentName);
+    void removeUsdSymbol(const std::string &instrumentName);
+    void removeCoinSymbol(const std::string &instrumentName);
 };
 extern exchangeSymbols exchangeData;
 

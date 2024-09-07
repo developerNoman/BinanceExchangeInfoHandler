@@ -1,23 +1,55 @@
 #include "processQueries.h"
-
 using namespace std;
 
 mutex myMutex;
 
-// function to display the marketData
-void display(const string &marketType, const string &instrumentName, const MarketInfo &MarketInfo)
+void exchangeSymbols::removeSpotSymbol(const string &instrumentName)
 {
-    spdlog::info("{} Market - Symbol: {}", marketType, MarketInfo.symbol);
-    spdlog::info("Quote Asset: {}", MarketInfo.quoteAsset);
-    spdlog::info("Status: {}", MarketInfo.status);
-    spdlog::info("Tick Size: {}", MarketInfo.tickSize);
-    spdlog::info("Step Size: {}", MarketInfo.stepSize);
+    auto data = spotSymbols.find(instrumentName);
+    if (data != spotSymbols.end())
+    {
+        spotSymbols.erase(data);
+    }
+}
+
+void exchangeSymbols::removeUsdSymbol(const string &instrumentName)
+{
+    auto data = usdSymbols.find(instrumentName);
+    if (data != usdSymbols.end())
+    {
+        usdSymbols.erase(data);
+    }
+}
+
+void exchangeSymbols::removeCoinSymbol(const string &instrumentName)
+{
+    auto data = coinSymbols.find(instrumentName);
+    if (data != coinSymbols.end())
+    {
+        coinSymbols.erase(data);
+    }
+}
+
+// function to display the marketData in logs and the answers.json file
+void display(const std::string &marketType, const std::string &instrumentName, const MarketInfo &marketInfo, rapidjson::Value &resultObj, rapidjson::Document::AllocatorType &allocator)
+{
+
+    resultObj.AddMember("quote_asset", rapidjson::Value(marketInfo.quoteAsset.c_str(), allocator), allocator);
+    resultObj.AddMember("status", rapidjson::Value(marketInfo.status.c_str(), allocator), allocator);
+    resultObj.AddMember("tick_size", rapidjson::Value(marketInfo.tickSize.c_str(), allocator), allocator);
+    resultObj.AddMember("step_size", rapidjson::Value(marketInfo.stepSize.c_str(), allocator), allocator);
+
+    spdlog::info("{} Market - Symbol: {}", marketType, marketInfo.symbol);
+    spdlog::info("Quote Asset: {}", marketInfo.quoteAsset);
+    spdlog::info("Status: {}", marketInfo.status);
+    spdlog::info("Tick Size: {}", marketInfo.tickSize);
+    spdlog::info("Step Size: {}", marketInfo.stepSize);
 }
 
 // map to handle the id comparison
 map<string, map<int, int>> idOccurrences;
 
-// method to process the queries from the query file
+// function to process the queries defined in query.json file
 void processQueries(const rapidjson::Document &doc)
 {
     if (!doc.HasMember("query") || !doc["query"].IsArray())
@@ -32,7 +64,7 @@ void processQueries(const rapidjson::Document &doc)
 
     rapidjson::Value resultArray(rapidjson::kArrayType);
 
-    ifstream ifs("answers.json");
+    std::ifstream ifs("answers.json");
     if (ifs.is_open())
     {
         rapidjson::IStreamWrapper isw(ifs);
@@ -45,8 +77,8 @@ void processQueries(const rapidjson::Document &doc)
     }
 
     const rapidjson::Value &queries = doc["query"];
-
     int length = queries.Size();
+
     myMutex.lock();
     for (int i = 0; i < length; ++i)
     {
@@ -59,9 +91,8 @@ void processQueries(const rapidjson::Document &doc)
         }
 
         int queryID = query["id"].GetInt();
-        string marketType = query["market_type"].GetString();
+        std::string marketType = query["market_type"].GetString();
 
-        // Update occurrences map
         if (idOccurrences[marketType][queryID] == 0)
         {
             idOccurrences[marketType][queryID] = 1;
@@ -74,12 +105,14 @@ void processQueries(const rapidjson::Document &doc)
 
         spdlog::debug("Processing query ID: {}, Market Type: {}", queryID, marketType);
 
-        string queryType = query["query_type"].GetString();
-        string instrumentName = query["instrument_name"].GetString();
+        std::string queryType = query["query_type"].GetString();
+        std::string instrumentName = query["instrument_name"].GetString();
 
         rapidjson::Value resultObj(rapidjson::kObjectType);
         resultObj.AddMember("instrument_name", rapidjson::Value(instrumentName.c_str(), allocator), allocator);
         resultObj.AddMember("market_type", rapidjson::Value(marketType.c_str(), allocator), allocator);
+
+        MarketInfo marketInfo;
 
         if (queryType == "GET")
         {
@@ -88,8 +121,8 @@ void processQueries(const rapidjson::Document &doc)
                 auto data = exchangeData.getSpotSymbols().find(instrumentName);
                 if (data != exchangeData.getSpotSymbols().end())
                 {
-                    cout << "calling display of spot";
-                    display("SPOT", instrumentName, data->second);
+                    marketInfo = data->second;
+                    display("SPOT", instrumentName, marketInfo, resultObj, allocator);
                 }
                 else
                 {
@@ -101,8 +134,8 @@ void processQueries(const rapidjson::Document &doc)
                 auto data = exchangeData.getUsdSymbols().find(instrumentName);
                 if (data != exchangeData.getUsdSymbols().end())
                 {
-                    cout << "calling display of usd";
-                    display("USD Futures", instrumentName, data->second);
+                    marketInfo = data->second;
+                    display("USD Futures", instrumentName, marketInfo, resultObj, allocator);
                 }
                 else
                 {
@@ -114,8 +147,8 @@ void processQueries(const rapidjson::Document &doc)
                 auto data = exchangeData.getCoinSymbols().find(instrumentName);
                 if (data != exchangeData.getCoinSymbols().end())
                 {
-                    cout << "calling display of coin";
-                    display("Coin Futures", instrumentName, data->second);
+                    marketInfo = data->second;
+                    display("Coin Futures", instrumentName, marketInfo, resultObj, allocator);
                 }
                 else
                 {
@@ -125,7 +158,7 @@ void processQueries(const rapidjson::Document &doc)
         }
         else if (queryType == "UPDATE")
         {
-            string newStatus = query["data"]["status"].GetString();
+            std::string newStatus = query["data"]["status"].GetString();
             MarketInfo updatedInfo;
 
             if (marketType == "SPOT")
@@ -136,7 +169,7 @@ void processQueries(const rapidjson::Document &doc)
                     updatedInfo = data->second;
                     updatedInfo.status = newStatus;
                     exchangeData.setSpotSymbol(instrumentName, updatedInfo);
-                    display("SPOT", instrumentName, updatedInfo);
+                    display("SPOT", instrumentName, updatedInfo, resultObj, allocator);
                 }
                 else
                 {
@@ -151,7 +184,7 @@ void processQueries(const rapidjson::Document &doc)
                     updatedInfo = data->second;
                     updatedInfo.status = newStatus;
                     exchangeData.setUsdSymbol(instrumentName, updatedInfo);
-                    display("USD Futures", instrumentName, updatedInfo);
+                    display("USD Futures", instrumentName, updatedInfo, resultObj, allocator);
                 }
                 else
                 {
@@ -166,7 +199,7 @@ void processQueries(const rapidjson::Document &doc)
                     updatedInfo = data->second;
                     updatedInfo.status = newStatus;
                     exchangeData.setCoinSymbol(instrumentName, updatedInfo);
-                    display("Coin Futures", instrumentName, updatedInfo);
+                    display("Coin Futures", instrumentName, updatedInfo, resultObj, allocator);
                 }
                 else
                 {
@@ -221,20 +254,24 @@ void processQueries(const rapidjson::Document &doc)
     }
     myMutex.unlock();
 
-    resultDoc.RemoveMember("results");
-    resultDoc.AddMember("results", resultArray, allocator);
-    ofstream ofs("answers.json");
-    if (!ofs.is_open())
+    if (resultArray.Empty())
     {
-        spdlog::error("Failed to open answer.json for writing!");
+        spdlog::debug("No new results to append.");
         return;
     }
+
+    std::ofstream ofs("answers.json", std::ios::out | std::ios::trunc);
+    if (!ofs.is_open())
+    {
+        spdlog::error("Failed to open answers.json for writing!");
+        return;
+    }
+
     rapidjson::OStreamWrapper osw(ofs);
     rapidjson::Writer<rapidjson::OStreamWrapper> writer(osw);
+    resultDoc.AddMember("results", resultArray, allocator);
     resultDoc.Accept(writer);
-    ofs.close();
-
-    spdlog::debug("Processed queries and appended results to file.");
+    spdlog::info("Results written to answers.json");
 }
 
 // reading the query.json file
