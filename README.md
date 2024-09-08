@@ -3,10 +3,10 @@
 
 # Build And Run:
 
-1. Clone the binance exchange handler repository: `git clone https://github.com/developerNoman/BinanceExchangeInfoHandler`, for external submodule add, use `git submodule update --init`
+1. Clone the binance exchange handler repository: `git clone https://github.com/developerNoman/BinanceExchangeInfoHandler`.
 2. Create a build directory: `mkdir build`
-3. Copy and paste the query.json and config.json in root of build folder and root of build/UnitTest: `cp query.json config.json build/` `cp query.json config.json build/UnitTest`, same goes for benchmarks.
-4. Go to the build directory: `cd build`
+3. Copy and paste the query.json and config.json in app of build folder and root of build/UnitTest: `cp query.json config.json build/app` `cp query.json config.json build/UnitTest`, same goes for benchmarks.
+4. Go to the build directory: `cd build`. Note: If you don't want to make the executables for unittest, benchmarks or both. You cane use following commands in build folder `cmake -DENABLE_UNITTEST=OFF ..` `cmake -DENABLE_BENCHMARK=OFF ..` `cmake -DENABLE_BOTH=OFF ..`
 5. Run the command: `cmake ..`
 6. Run the command: `make -j`
 7. In docker, build image `sudo docker build -t myexchangedata .` and then run the container with volume mapping `sudo docker run -it -v.:/app --name mycontainer myexchangedata`

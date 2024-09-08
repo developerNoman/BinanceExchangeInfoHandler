@@ -9,7 +9,7 @@ string logLevel, spotBase, usdtFutureBase, coinFutureBase;
 string spotTarget, usdtFutureTarget, coinFutureTarget;
 int request_interval;
 
-void parseSymbols(string &responseBody, const string &base, exchangeSymbols &exchangeData)
+void processEndpoints::parseSymbols(string &responseBody, const string &base, exchangeSymbols &exchangeData)
 {
     if (responseBody.empty())
     {
@@ -212,7 +212,9 @@ void session::onRead(beast::error_code ec, size_t bytes_transferred)
     }
 
     auto responseBody = res_.body();
-    parseSymbols(responseBody, host_, exchangeData);
+    processEndpoints pe;
+
+    pe.parseSymbols(responseBody, host_, exchangeData);
 
     beast::get_lowest_layer(stream_).expires_after(chrono::seconds(30));
 
@@ -233,7 +235,7 @@ void session::onShutdown(beast::error_code ec)
 }
 
 // Read the config.json file and store values in variables
-void readConfig(const string &configFile, rapidjson::Document &doc)
+void processEndpoints::readConfig(const string &configFile, rapidjson::Document &doc)
 {
     FILE *fp = fopen(configFile.c_str(), "r");
     if (!fp)
@@ -261,7 +263,7 @@ void readConfig(const string &configFile, rapidjson::Document &doc)
 }
 
 // Function to fetch data from the API
-void fetchData(const string &baseUrl, const string &endpoint, net::io_context &ioc, ssl::context &ctx)
+void processEndpoints::fetchData(const string &baseUrl, const string &endpoint, net::io_context &ioc, ssl::context &ctx)
 {
     spdlog::info("Fetching data from baseUrl: {}, endpoint: {}", baseUrl, endpoint);
     auto sessionPtr = make_shared<session>(net::make_strand(ioc), ctx);
@@ -269,29 +271,30 @@ void fetchData(const string &baseUrl, const string &endpoint, net::io_context &i
 }
 
 // Function to handle spot data
-void fetchSpotData(net::io_context &ioc, ssl::context &ctx)
+void processEndpoints::fetchSpotData(net::io_context &ioc, ssl::context &ctx)
 {
     fetchData(spotBase, spotTarget, ioc, ctx);
 }
 
 // Function to handle USD future data
-void fetchUsdFutureData(net::io_context &ioc, ssl::context &ctx)
+void processEndpoints::fetchUsdFutureData(net::io_context &ioc, ssl::context &ctx)
 {
     fetchData(usdtFutureBase, usdtFutureTarget, ioc, ctx);
 }
 
 // Function to handle coin future data
-void fetchCoinFutureData(net::io_context &ioc, ssl::context &ctx)
+void processEndpoints::fetchCoinFutureData(net::io_context &ioc, ssl::context &ctx)
 {
     fetchData(coinFutureBase, coinFutureTarget, ioc, ctx);
 }
 
 // Callback function for the timer
-void fetchEndpoints(const boost::system::error_code &, boost::asio::steady_timer *fetchTimer, boost::asio::io_context &ioc, ssl::context &ctx)
+void processEndpoints::fetchEndpoints(const boost::system::error_code &, boost::asio::steady_timer *fetchTimer, boost::asio::io_context &ioc, ssl::context &ctx)
 {
     fetchSpotData(ioc, ctx);
     fetchUsdFutureData(ioc, ctx);
     fetchCoinFutureData(ioc, ctx);
+    processEndpoints pe;
     fetchTimer->expires_at(fetchTimer->expiry() + boost::asio::chrono::seconds(request_interval));
-    fetchTimer->async_wait(boost::bind(fetchEndpoints, boost::asio::placeholders::error, fetchTimer, ref(ioc), ref(ctx)));
+    fetchTimer->async_wait(boost::bind(&processEndpoints::fetchEndpoints, &pe, boost::asio::placeholders::error, fetchTimer, ref(ioc), ref(ctx)));
 }

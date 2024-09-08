@@ -1,5 +1,6 @@
-#include "processData.h"
 #include "marketInfo.h"
+#include "processQueries.h"
+#include "fetchData.h"
 #include "gtest/gtest.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
@@ -7,8 +8,13 @@
 
 using namespace std;
 
-void parseSymbols(string &responseBody, const string &base, exchangeSymbols &exchangeData);
-void readQueryFile(const string &queryFile, rapidjson::Document &doc1);
+extern string spotBase, usdtFutureBase, coinFutureBase;
+extern string spotTarget, usdtFutureTarget, coinFutureTarget;
+
+// object creations
+extern exchangeSymbols exchangeData;
+processEndpoints pe;
+processResponse pr;
 
 void display(const string &marketType, const string &instrumentName, const MarketInfo &MarketInfo)
 {
@@ -19,8 +25,6 @@ void display(const string &marketType, const string &instrumentName, const Marke
     spdlog::info("Step Size: {}", MarketInfo.stepSize);
 }
 
-extern exchangeSymbols exchangeData;
-
 // Test case for correctly read Query file
 TEST(ReadQueryFileTest, CorrectlyReadQuery)
 {
@@ -30,7 +34,7 @@ TEST(ReadQueryFileTest, CorrectlyReadQuery)
     tempFile.close();
 
     rapidjson::Document doc1;
-    readQueryFile(tempFileName, doc1);
+    pr.readQueryFile(tempFileName, doc1);
 
     ASSERT_FALSE(doc1.HasParseError());
     ASSERT_TRUE(doc1.HasMember("queries"));
@@ -46,7 +50,7 @@ TEST(ReadQueryFileTest, CorrectlyReadQuery)
 TEST(ReadConfigTest, CorrectlyReadsConfig)
 {
     rapidjson::Document doc1;
-    readConfig("config.json", doc1);
+    pe.readConfig("config.json", doc1);
 
     EXPECT_EQ(spotBase, "api.binance.com");
     EXPECT_EQ(usdtFutureBase, "fapi.binance.com");
@@ -85,7 +89,7 @@ TEST(ParseSymbolsTest, EmptyJSON)
 {
     string emptyJSON = "{}";
     exchangeSymbols exchangeData;
-    parseSymbols(emptyJSON, "spot", exchangeData);
+    pe.parseSymbols(emptyJSON, "spot", exchangeData);
     EXPECT_TRUE(exchangeData.getSpotSymbols().empty());
 }
 
@@ -94,7 +98,7 @@ TEST(ParseSymbolsTest, EmptyInput)
 {
     string emptyInput = "";
     exchangeSymbols exchangeData;
-    parseSymbols(emptyInput, "spot", exchangeData);
+    pe.parseSymbols(emptyInput, "spot", exchangeData);
     EXPECT_TRUE(exchangeData.getSpotSymbols().empty());
 }
 
@@ -103,6 +107,6 @@ TEST(ParseSymbolsTest, InvalidJSON)
 {
     string invalidJSON = R"({"symbols": ["symbol": "BTCUSDT"]})";
     exchangeSymbols exchangeData;
-    parseSymbols(invalidJSON, "spot", exchangeData);
+    pe.parseSymbols(invalidJSON, "spot", exchangeData);
     EXPECT_TRUE(exchangeData.getSpotSymbols().empty());
 }

@@ -28,8 +28,18 @@ extern int request_interval;
 void load_root_certificates(ssl::context &ctx);
 
 // functions declarations which are needed for the main appilcation.
-void readConfig(const std::string &, rapidjson::Document &);
-void fetchEndpoints(const boost::system::error_code &, boost::asio::steady_timer *, boost::asio::io_context &, boost::asio::ssl::context &);
-void readQueryFileContinuously(const std::string &, boost::asio::io_context &);
+
+class processEndpoints
+{
+public:
+    void readConfig(const std::string &, rapidjson::Document &);
+    void fetchEndpoints(const boost::system::error_code &, boost::asio::steady_timer *, boost::asio::io_context &, boost::asio::ssl::context &);
+};
+
+class processResponse
+{
+public:
+    void readQueryFileContinuously(const std::string &, boost::asio::io_context &);
+};
 
 #endif

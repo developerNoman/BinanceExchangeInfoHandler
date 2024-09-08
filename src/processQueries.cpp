@@ -31,7 +31,7 @@ void exchangeSymbols::removeCoinSymbol(const string &instrumentName)
 }
 
 // function to display the marketData in logs and the answers.json file
-void display(const std::string &marketType, const std::string &instrumentName, const MarketInfo &marketInfo, rapidjson::Value &resultObj, rapidjson::Document::AllocatorType &allocator)
+void processResponse::display(const std::string &marketType, const std::string &instrumentName, const MarketInfo &marketInfo, rapidjson::Value &resultObj, rapidjson::Document::AllocatorType &allocator)
 {
 
     resultObj.AddMember("quote_asset", rapidjson::Value(marketInfo.quoteAsset.c_str(), allocator), allocator);
@@ -50,7 +50,7 @@ void display(const std::string &marketType, const std::string &instrumentName, c
 map<string, map<int, int>> idOccurrences;
 
 // function to process the queries defined in query.json file
-void processQueries(const rapidjson::Document &doc)
+void processResponse::processQueries(const rapidjson::Document &doc)
 {
     if (!doc.HasMember("query") || !doc["query"].IsArray())
     {
@@ -275,7 +275,7 @@ void processQueries(const rapidjson::Document &doc)
 }
 
 // reading the query.json file
-void readQueryFile(const string &queryFile, rapidjson::Document &doc1)
+void processResponse::readQueryFile(const string &queryFile, rapidjson::Document &doc1)
 {
     FILE *fp = fopen(queryFile.c_str(), "r");
     if (!fp)
@@ -296,7 +296,7 @@ void readQueryFile(const string &queryFile, rapidjson::Document &doc1)
 }
 
 // read the process the query continuously
-void readQueryFileContinuously(const string &queryFile, net::io_context &ioc)
+void processResponse::readQueryFileContinuously(const string &queryFile, net::io_context &ioc)
 {
     while (true)
     {
