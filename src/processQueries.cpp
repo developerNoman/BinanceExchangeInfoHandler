@@ -5,28 +5,28 @@ mutex myMutex;
 
 void exchangeSymbols::removeSpotSymbol(const string &instrumentName)
 {
-    auto data = spotSymbols.find(instrumentName);
-    if (data != spotSymbols.end())
+    auto data = _spotSymbols.find(instrumentName);
+    if (data != _spotSymbols.end())
     {
-        spotSymbols.erase(data);
+        _spotSymbols.erase(data);
     }
 }
 
 void exchangeSymbols::removeUsdSymbol(const string &instrumentName)
 {
-    auto data = usdSymbols.find(instrumentName);
-    if (data != usdSymbols.end())
+    auto data = _usdSymbols.find(instrumentName);
+    if (data != _usdSymbols.end())
     {
-        usdSymbols.erase(data);
+        _usdSymbols.erase(data);
     }
 }
 
 void exchangeSymbols::removeCoinSymbol(const string &instrumentName)
 {
-    auto data = coinSymbols.find(instrumentName);
-    if (data != coinSymbols.end())
+    auto data = _coinSymbols.find(instrumentName);
+    if (data != _coinSymbols.end())
     {
-        coinSymbols.erase(data);
+        _coinSymbols.erase(data);
     }
 }
 

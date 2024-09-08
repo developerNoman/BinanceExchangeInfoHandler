@@ -4,14 +4,26 @@ using namespace std;
 
 int main()
 {
+
     rapidjson::Document doc1;
     readConfig("config.json", doc1);
     spdlog::debug("Configuration loaded: spotBase={}, usdtFutureBase={}, coinFutureBase={}", spotBase, usdtFutureBase, coinFutureBase);
 
-    ostringstream json_stream;
-    auto console_sink = make_shared<spdlog::sinks::stdout_color_sink_mt>();
-    auto json_sink = make_shared<spdlog::sinks::ostream_sink_mt>(json_stream);
-    auto logger = make_shared<spdlog::logger>("logger", spdlog::sinks_init_list{console_sink, json_sink});
+    vector<spdlog::sink_ptr> sinks;
+
+    if (logToConsole)
+    {
+        auto console_sink = make_shared<spdlog::sinks::stdout_color_sink_mt>();
+        sinks.push_back(console_sink);
+    }
+
+    if (logToFile)
+    {
+        auto file_sink = make_shared<spdlog::sinks::basic_file_sink_mt>("logfile.log");
+        sinks.push_back(file_sink);
+    }
+
+    auto logger = make_shared<spdlog::logger>("BinanceExchangeEndpoints", begin(sinks), end(sinks));
 
     logger->set_level(spdlog::level::from_str(logLevel));
     spdlog::set_default_logger(logger);
