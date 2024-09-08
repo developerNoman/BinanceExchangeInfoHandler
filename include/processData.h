@@ -20,6 +20,7 @@
 #include <fstream>
 
 extern std::string logLevel;
+extern bool logToFile, logToConsole;
 extern std::string spotBase, usdtFutureBase, coinFutureBase;
 extern std::string spotTarget, usdtFutureTarget, coinFutureTarget;
 extern int request_interval;

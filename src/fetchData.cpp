@@ -4,6 +4,7 @@
 using namespace std;
 
 exchangeSymbols exchangeData;
+bool logToFile, logToConsole;
 string logLevel, spotBase, usdtFutureBase, coinFutureBase;
 string spotTarget, usdtFutureTarget, coinFutureTarget;
 int request_interval;
@@ -238,6 +239,8 @@ void readConfig(const string &configFile, rapidjson::Document &doc)
     rapidjson::FileReadStream is(fp, buffer, sizeof(buffer));
     doc.ParseStream(is);
 
+    logToFile = doc["logging"]["file"].GetBool();
+    logToConsole = doc["logging"]["console"].GetBool();
     logLevel = doc["logging"]["level"].GetString();
     spotBase = doc["exchange_base_url"]["spotBase"].GetString();
     usdtFutureBase = doc["exchange_base_url"]["usdtFutureBase"].GetString();
