@@ -4,9 +4,12 @@ using namespace std;
 
 int main()
 {
+    // object creations for method accessing
+    processEndpoints pe;
+    processResponse pr;
 
     rapidjson::Document doc1;
-    readConfig("config.json", doc1);
+    pe.readConfig("config.json", doc1);
     spdlog::debug("Configuration loaded: spotBase={}, usdtFutureBase={}, coinFutureBase={}", spotBase, usdtFutureBase, coinFutureBase);
 
     vector<spdlog::sink_ptr> sinks;
@@ -38,9 +41,9 @@ int main()
     ctx.set_verify_mode(boost::asio::ssl::verify_peer);
 
     boost::asio::steady_timer fetchTimer(ioc, boost::asio::chrono::seconds(request_interval));
-    fetchTimer.async_wait(boost::bind(fetchEndpoints, boost::asio::placeholders::error, &fetchTimer, ref(ioc), ref(ctx)));
+    fetchTimer.async_wait(boost::bind(&processEndpoints::fetchEndpoints, &pe, boost::asio::placeholders::error, &fetchTimer, ref(ioc), ref(ctx)));
 
-    thread queryThread(readQueryFileContinuously, "query.json", ref(ioc));
+    thread queryThread(&processResponse::readQueryFileContinuously, &pr, "query.json", ref(ioc));
     ioc.run();
 
     queryThread.join();

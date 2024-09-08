@@ -30,12 +30,16 @@ public:
 };
 
 // functions that are used to process the data from endpoints
-void parseSymbols(std::string &, const std::string &, exchangeSymbols &);
-void readConfig(const std::string &, rapidjson::Document &);
-void fetchData(const std::string &, const std::string &, net::io_context &, ssl::context &);
-void fetchSpotData(net::io_context &, ssl::context &);
-void fetchUsdFutureData(net::io_context &, ssl::context &);
-void fetchCoinFutureData(net::io_context &, ssl::context &);
-void fetchEndpoints(const boost::system::error_code &, boost::asio::steady_timer *, boost::asio::io_context &, ssl::context &);
+class processEndpoints
+{
+public:
+    void parseSymbols(std::string &, const std::string &, exchangeSymbols &);
+    void readConfig(const std::string &, rapidjson::Document &);
+    void fetchData(const std::string &, const std::string &, net::io_context &, ssl::context &);
+    void fetchSpotData(net::io_context &, ssl::context &);
+    void fetchUsdFutureData(net::io_context &, ssl::context &);
+    void fetchCoinFutureData(net::io_context &, ssl::context &);
+    void fetchEndpoints(const boost::system::error_code &, boost::asio::steady_timer *, boost::asio::io_context &, ssl::context &);
+};
 
 #endif

@@ -1,5 +1,7 @@
 #include "benchmark/benchmark.h"
-#include "processData.h"
+#include "marketInfo.h"
+#include "processQueries.h"
+#include "fetchData.h"
 #include "spdlog/spdlog.h"
 #include "rapidjson/document.h"
 #include "boost/asio.hpp"
@@ -15,8 +17,11 @@
 namespace net = boost::asio;
 using namespace std;
 
-void readQueryFile(const string &queryFile, rapidjson::Document &doc1);
-void fetchData(const std::string &baseUrl, const std::string &endpoint, net::io_context &ioc, ssl::context &ctx);
+extern string spotBase, spotTarget;
+
+// object creations
+processEndpoints pe;
+processResponse pr;
 
 // BenchMark to read query file
 static void BenchMark_ReadQuery(benchmark::State &state)
@@ -25,7 +30,7 @@ static void BenchMark_ReadQuery(benchmark::State &state)
     std::string queryFile = "query.json";
     for (auto _ : state)
     {
-        readQueryFile(queryFile, doc);
+        pr.readQueryFile(queryFile, doc);
     }
 }
 BENCHMARK(BenchMark_ReadQuery);
@@ -37,7 +42,7 @@ static void BenchMark_ReadConfig(benchmark::State &state)
     std::string configFile = "config.json";
     for (auto _ : state)
     {
-        readConfig(configFile, doc);
+        pe.readConfig(configFile, doc);
     }
 }
 BENCHMARK(BenchMark_ReadConfig);
@@ -51,7 +56,7 @@ static void BenchMark_FetchData(benchmark::State &state)
     ctx.set_verify_mode(ssl::verify_peer);
     for (auto _ : state)
     {
-        fetchData(spotBase, spotTarget, ioc, ctx);
+        pe.fetchData(spotBase, spotTarget, ioc, ctx);
         ioc.run();
     }
 }
