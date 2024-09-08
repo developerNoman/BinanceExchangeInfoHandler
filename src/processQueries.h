@@ -5,12 +5,10 @@
 #include <vector>
 #include <mutex>
 
-void display(const std::string &marketType, const std::string &instrumentName, const MarketInfo &MarketInfo);
 
-void processQueries(const rapidjson::Document &doc);
-
-void readQueryFile(const std::string &queryFile, rapidjson::Document &doc1);
-
-void readQueryFileContinuously(const std::string &queryFile, boost::asio::io_context &ioc);
+void display(const std::string &, const std::string &, const MarketInfo &);
+void processQueries(const rapidjson::Document &);
+void readQueryFile(const std::string &, rapidjson::Document &);
+void readQueryFileContinuously(const std::string &, boost::asio::io_context &);
 
 #endif

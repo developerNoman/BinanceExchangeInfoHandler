@@ -45,39 +45,39 @@ struct MarketInfo
 class exchangeSymbols
 {
 private:
-    std::map<std::string, MarketInfo> spotSymbols;
-    std::map<std::string, MarketInfo> usdSymbols;
-    std::map<std::string, MarketInfo> coinSymbols;
+    std::map<std::string, MarketInfo> _spotSymbols;
+    std::map<std::string, MarketInfo> _usdSymbols;
+    std::map<std::string, MarketInfo> _coinSymbols;
 
 public:
     void setSpotSymbol(const std::string &symbol, const MarketInfo &info)
     {
-        spotSymbols[symbol] = info;
+        _spotSymbols[symbol] = info;
     }
 
     void setUsdSymbol(const std::string &symbol, const MarketInfo &info)
     {
-        usdSymbols[symbol] = info;
+        _usdSymbols[symbol] = info;
     }
 
     void setCoinSymbol(const std::string &symbol, const MarketInfo &info)
     {
-        coinSymbols[symbol] = info;
+        _coinSymbols[symbol] = info;
     }
 
     const std::map<std::string, MarketInfo> &getSpotSymbols() const
     {
-        return spotSymbols;
+        return _spotSymbols;
     }
 
     const std::map<std::string, MarketInfo> &getUsdSymbols() const
     {
-        return usdSymbols;
+        return _usdSymbols;
     }
 
     const std::map<std::string, MarketInfo> &getCoinSymbols() const
     {
-        return coinSymbols;
+        return _coinSymbols;
     }
 
     void removeSpotSymbol(const std::string &instrumentName);

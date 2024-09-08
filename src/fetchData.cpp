@@ -13,7 +13,7 @@ void parseSymbols(string &responseBody, const string &base, exchangeSymbols &exc
 {
     if (responseBody.empty())
     {
-        cerr << "Error: The response body is empty." << endl;
+        spdlog::error("Error: The response body is empty");
         return;
     }
 
@@ -24,14 +24,14 @@ void parseSymbols(string &responseBody, const string &base, exchangeSymbols &exc
     {
         cerr << "JSON parse error: " << rapidjson::GetParseError_En(parseResult.Code())
              << " (offset " << parseResult.Offset() << ")" << endl;
-        cerr << "Response Body: " << responseBody << endl;
+        spdlog::debug("Response Body: {}", responseBody);
         return;
     }
 
     if (!fullData.IsObject() || !fullData.HasMember("symbols") || !fullData["symbols"].IsArray())
     {
-        cerr << "Invalid JSON format or missing 'symbols' array." << endl;
-        cerr << "Response Body: " << responseBody << endl;
+        spdlog::error("Invalid JSON format or missing 'symbols' array.");
+        spdlog::debug("Response Body: {}", responseBody);
         return;
     }
 
@@ -45,7 +45,7 @@ void parseSymbols(string &responseBody, const string &base, exchangeSymbols &exc
         }
         else
         {
-            cerr << "Missing or invalid 'symbol' field in a symbol object." << endl;
+            spdlog::error("Missing or invalid symbol field in a symbol object.");
             continue;
         }
         if (symbol.HasMember("quoteAsset"))
@@ -57,7 +57,7 @@ void parseSymbols(string &responseBody, const string &base, exchangeSymbols &exc
             else
             {
                 info.quoteAsset = ""; // Handle unexpected type by setting to empty string
-                cerr << "Invalid 'quoteAsset' field in symbol: " << info.symbol << endl;
+                spdlog::error("Invalid 'quoteAsset' field in symbol: {}", info.symbol);
             }
         }
         else
@@ -74,7 +74,7 @@ void parseSymbols(string &responseBody, const string &base, exchangeSymbols &exc
         }
         else
         {
-            cerr << "Missing 'status' or 'contractStatus' in symbol: " << info.symbol << endl;
+            spdlog::error("Missing 'status' or 'contractStatus' in symbol:{} ", info.symbol);
         }
 
         if (symbol.HasMember("filters") && symbol["filters"].IsArray())
@@ -97,7 +97,7 @@ void parseSymbols(string &responseBody, const string &base, exchangeSymbols &exc
         }
         else
         {
-            cerr << "Missing or invalid 'filters' array in symbol: " << info.symbol << endl;
+            spdlog::error("Missing or invalid 'filters' array in symbol:{}", info.symbol);
         }
         if (base == spotBase)
         {
@@ -114,7 +114,7 @@ void parseSymbols(string &responseBody, const string &base, exchangeSymbols &exc
     }
 }
 
-void fail(beast::error_code ec, char const *what)
+void session::fail(beast::error_code ec, char const *what)
 {
     cerr << what << ": " << ec.message() << endl;
 }
@@ -122,6 +122,13 @@ void fail(beast::error_code ec, char const *what)
 void session::run(const char *host, const char *port, const char *target, int version)
 {
     host_ = host;
+
+    if (!SSL_set_tlsext_host_name(stream_.native_handle(), host))
+    {
+        beast::error_code ec{static_cast<int>(::ERR_get_error()), net::error::get_ssl_category()};
+        spdlog::error("{}", ec.message());
+        return;
+    }
 
     req_.version(version);
     req_.method(http::verb::get);

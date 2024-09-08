@@ -4,6 +4,7 @@ using namespace std;
 
 int main()
 {
+
     rapidjson::Document doc1;
     readConfig("config.json", doc1);
     spdlog::debug("Configuration loaded: spotBase={}, usdtFutureBase={}, coinFutureBase={}", spotBase, usdtFutureBase, coinFutureBase);
