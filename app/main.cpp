@@ -12,21 +12,21 @@ int main()
     pe.readConfig("config.json", doc1);
     spdlog::debug("Configuration loaded: spotBase={}, usdtFutureBase={}, coinFutureBase={}", spotBase, usdtFutureBase, coinFutureBase);
 
-    vector<spdlog::sink_ptr> sinks;
+    vector<spdlog::sink_ptr> sinkData;
 
     if (logToConsole)
     {
         auto console_sink = make_shared<spdlog::sinks::stdout_color_sink_mt>();
-        sinks.push_back(console_sink);
+        sinkData.push_back(console_sink);
     }
 
     if (logToFile)
     {
         auto file_sink = make_shared<spdlog::sinks::basic_file_sink_mt>("logfile.log");
-        sinks.push_back(file_sink);
+        sinkData.push_back(file_sink);
     }
 
-    auto logger = make_shared<spdlog::logger>("BinanceExchangeEndpoints", begin(sinks), end(sinks));
+    auto logger = make_shared<spdlog::logger>("BinanceExchangeEndpoints", begin(sinkData), end(sinkData));
 
     logger->set_level(spdlog::level::from_str(logLevel));
     spdlog::set_default_logger(logger);
