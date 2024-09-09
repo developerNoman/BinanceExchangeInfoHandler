@@ -16,19 +16,19 @@ link_libraries(${OPENSSL_LIBRARIES})
 add_subdirectory(src)
 add_subdirectory(app)
 
-option(ENABLE_UNITTEST "Build unit tests" ON)
+option(BUILD_TEST "Build tests" ON)
 
-option(ENABLE_BENCHMARK "Build benchmarks" ON)
+option(BUILD_BENCHMARK "Build benchmarks" ON)
 
-option(ENABLE_BOTH "Build unittests and benchmarks" ON)
+option(BUILD_BOTH "Build tests and benchmarks" ON)
 
 
-if(ENABLE_BOTH)
-    if(ENABLE_UNITTEST)
+if(BUILD_BOTH)
+    if(BUILD_TEST)
         add_subdirectory(UnitTest)
     endif()
 
-    if(ENABLE_BENCHMARK)
+    if(BUILD_BENCHMARK)
         add_subdirectory(BenchMarks)
     endif()
 endif()

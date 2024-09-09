@@ -3,30 +3,62 @@ using namespace std;
 
 mutex myMutex;
 
+exchangeSymbols exchangedData;
+
+const map<string, MarketInfo> &exchangeSymbols::getSpotSymbols() const
+{
+    return spotSymbols_;
+}
+
+const std::map<std::string, MarketInfo> &exchangeSymbols::getUsdSymbols() const
+{
+    return usdSymbols_;
+}
+
+const std::map<std::string, MarketInfo> &exchangeSymbols::getCoinSymbols() const
+{
+    return coinSymbols_;
+}
+
+void exchangeSymbols::updateSpotSymbol(const std::string &symbol, const MarketInfo &info)
+{
+    spotSymbols_[symbol] = info;
+}
+
+void exchangeSymbols::updateUsdSymbol(const std::string &symbol, const MarketInfo &info)
+{
+    usdSymbols_[symbol] = info;
+}
+
+void exchangeSymbols::updateCoinSymbol(const std::string &symbol, const MarketInfo &info)
+{
+    coinSymbols_[symbol] = info;
+}
+
 void exchangeSymbols::removeSpotSymbol(const string &instrumentName)
 {
-    auto data = _spotSymbols.find(instrumentName);
-    if (data != _spotSymbols.end())
+    auto data = spotSymbols_.find(instrumentName);
+    if (data != spotSymbols_.end())
     {
-        _spotSymbols.erase(data);
+        spotSymbols_.erase(data);
     }
 }
 
 void exchangeSymbols::removeUsdSymbol(const string &instrumentName)
 {
-    auto data = _usdSymbols.find(instrumentName);
-    if (data != _usdSymbols.end())
+    auto data = usdSymbols_.find(instrumentName);
+    if (data != usdSymbols_.end())
     {
-        _usdSymbols.erase(data);
+        usdSymbols_.erase(data);
     }
 }
 
 void exchangeSymbols::removeCoinSymbol(const string &instrumentName)
 {
-    auto data = _coinSymbols.find(instrumentName);
-    if (data != _coinSymbols.end())
+    auto data = coinSymbols_.find(instrumentName);
+    if (data != coinSymbols_.end())
     {
-        _coinSymbols.erase(data);
+        coinSymbols_.erase(data);
     }
 }
 
@@ -106,8 +138,8 @@ void processResponse::processQueries(const rapidjson::Document &doc)
         {
             if (marketType == "SPOT")
             {
-                auto data = exchangeData.getSpotSymbols().find(instrumentName);
-                if (data != exchangeData.getSpotSymbols().end())
+                auto data = exchangedData.getSpotSymbols().find(instrumentName);
+                if (data != exchangedData.getSpotSymbols().end())
                 {
                     marketInfo = data->second;
                     display("SPOT", instrumentName, marketInfo, resultObj, allocator);
@@ -119,8 +151,8 @@ void processResponse::processQueries(const rapidjson::Document &doc)
             }
             else if (marketType == "usd_futures")
             {
-                auto data = exchangeData.getUsdSymbols().find(instrumentName);
-                if (data != exchangeData.getUsdSymbols().end())
+                auto data = exchangedData.getUsdSymbols().find(instrumentName);
+                if (data != exchangedData.getUsdSymbols().end())
                 {
                     marketInfo = data->second;
                     display("USD Futures", instrumentName, marketInfo, resultObj, allocator);
@@ -132,8 +164,8 @@ void processResponse::processQueries(const rapidjson::Document &doc)
             }
             else if (marketType == "coin_futures")
             {
-                auto data = exchangeData.getCoinSymbols().find(instrumentName);
-                if (data != exchangeData.getCoinSymbols().end())
+                auto data = exchangedData.getCoinSymbols().find(instrumentName);
+                if (data != exchangedData.getCoinSymbols().end())
                 {
                     marketInfo = data->second;
                     display("Coin Futures", instrumentName, marketInfo, resultObj, allocator);
@@ -151,12 +183,12 @@ void processResponse::processQueries(const rapidjson::Document &doc)
 
             if (marketType == "SPOT")
             {
-                auto data = exchangeData.getSpotSymbols().find(instrumentName);
-                if (data != exchangeData.getSpotSymbols().end())
+                auto data = exchangedData.getSpotSymbols().find(instrumentName);
+                if (data != exchangedData.getSpotSymbols().end())
                 {
                     updatedInfo = data->second;
                     updatedInfo.status = newStatus;
-                    exchangeData.setSpotSymbol(instrumentName, updatedInfo);
+                    exchangedData.updateSpotSymbol(instrumentName, updatedInfo);
                     display("SPOT", instrumentName, updatedInfo, resultObj, allocator);
                 }
                 else
@@ -166,12 +198,12 @@ void processResponse::processQueries(const rapidjson::Document &doc)
             }
             else if (marketType == "usd_futures")
             {
-                auto data = exchangeData.getUsdSymbols().find(instrumentName);
-                if (data != exchangeData.getUsdSymbols().end())
+                auto data = exchangedData.getUsdSymbols().find(instrumentName);
+                if (data != exchangedData.getUsdSymbols().end())
                 {
                     updatedInfo = data->second;
                     updatedInfo.status = newStatus;
-                    exchangeData.setUsdSymbol(instrumentName, updatedInfo);
+                    exchangedData.updateUsdSymbol(instrumentName, updatedInfo);
                     display("USD Futures", instrumentName, updatedInfo, resultObj, allocator);
                 }
                 else
@@ -181,12 +213,12 @@ void processResponse::processQueries(const rapidjson::Document &doc)
             }
             else if (marketType == "coin_futures")
             {
-                auto data = exchangeData.getCoinSymbols().find(instrumentName);
-                if (data != exchangeData.getCoinSymbols().end())
+                auto data = exchangedData.getCoinSymbols().find(instrumentName);
+                if (data != exchangedData.getCoinSymbols().end())
                 {
                     updatedInfo = data->second;
                     updatedInfo.status = newStatus;
-                    exchangeData.setCoinSymbol(instrumentName, updatedInfo);
+                    exchangedData.updateCoinSymbol(instrumentName, updatedInfo);
                     display("Coin Futures", instrumentName, updatedInfo, resultObj, allocator);
                 }
                 else
@@ -199,11 +231,11 @@ void processResponse::processQueries(const rapidjson::Document &doc)
         {
             if (marketType == "SPOT")
             {
-                auto data = exchangeData.getSpotSymbols().find(instrumentName);
-                if (data != exchangeData.getSpotSymbols().end())
+                auto data = exchangedData.getSpotSymbols().find(instrumentName);
+                if (data != exchangedData.getSpotSymbols().end())
                 {
                     spdlog::info("Removing SPOT symbol: {}", instrumentName);
-                    exchangeData.removeSpotSymbol(instrumentName);
+                    exchangedData.removeSpotSymbol(instrumentName);
                 }
                 else
                 {
@@ -212,11 +244,11 @@ void processResponse::processQueries(const rapidjson::Document &doc)
             }
             else if (marketType == "usd_futures")
             {
-                auto data = exchangeData.getUsdSymbols().find(instrumentName);
-                if (data != exchangeData.getUsdSymbols().end())
+                auto data = exchangedData.getUsdSymbols().find(instrumentName);
+                if (data != exchangedData.getUsdSymbols().end())
                 {
                     spdlog::info("Removing USD Futures symbol: {}", instrumentName);
-                    exchangeData.removeUsdSymbol(instrumentName);
+                    exchangedData.removeUsdSymbol(instrumentName);
                 }
                 else
                 {
@@ -225,11 +257,11 @@ void processResponse::processQueries(const rapidjson::Document &doc)
             }
             else if (marketType == "coin_futures")
             {
-                auto data = exchangeData.getCoinSymbols().find(instrumentName);
-                if (data != exchangeData.getCoinSymbols().end())
+                auto data = exchangedData.getCoinSymbols().find(instrumentName);
+                if (data != exchangedData.getCoinSymbols().end())
                 {
                     spdlog::info("Removing Coin Futures symbol: {}", instrumentName);
-                    exchangeData.removeCoinSymbol(instrumentName);
+                    exchangedData.removeCoinSymbol(instrumentName);
                 }
                 else
                 {

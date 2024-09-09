@@ -44,46 +44,33 @@ struct MarketInfo
 // Defined the exchangeSymbols structure
 class exchangeSymbols
 {
-private:
-    std::map<std::string, MarketInfo> _spotSymbols;
-    std::map<std::string, MarketInfo> _usdSymbols;
-    std::map<std::string, MarketInfo> _coinSymbols;
-
 public:
-    void setSpotSymbol(const std::string &symbol, const MarketInfo &info)
-    {
-        _spotSymbols[symbol] = info;
-    }
+    void setSpotSymbol(const std::string &symbol, const MarketInfo &info);
 
-    void setUsdSymbol(const std::string &symbol, const MarketInfo &info)
-    {
-        _usdSymbols[symbol] = info;
-    }
+    void setUsdSymbol(const std::string &symbol, const MarketInfo &info);
 
-    void setCoinSymbol(const std::string &symbol, const MarketInfo &info)
-    {
-        _coinSymbols[symbol] = info;
-    }
+    void setCoinSymbol(const std::string &symbol, const MarketInfo &info);
 
-    const std::map<std::string, MarketInfo> &getSpotSymbols() const
-    {
-        return _spotSymbols;
-    }
+    const std::map<std::string, MarketInfo> &getSpotSymbols() const;
 
-    const std::map<std::string, MarketInfo> &getUsdSymbols() const
-    {
-        return _usdSymbols;
-    }
+    const std::map<std::string, MarketInfo> &getUsdSymbols() const;
 
-    const std::map<std::string, MarketInfo> &getCoinSymbols() const
-    {
-        return _coinSymbols;
-    }
+    const std::map<std::string, MarketInfo> &getCoinSymbols() const;
+
+    void updateSpotSymbol(const std::string &symbol, const MarketInfo &info);
+
+    void updateUsdSymbol(const std::string &symbol, const MarketInfo &info);
+
+    void updateCoinSymbol(const std::string &symbol, const MarketInfo &info);
 
     void removeSpotSymbol(const std::string &instrumentName);
     void removeUsdSymbol(const std::string &instrumentName);
     void removeCoinSymbol(const std::string &instrumentName);
+
+private:
+    std::map<std::string, MarketInfo> spotSymbols_;
+    std::map<std::string, MarketInfo> usdSymbols_;
+    std::map<std::string, MarketInfo> coinSymbols_;
 };
-extern exchangeSymbols exchangeData;
 
 #endif

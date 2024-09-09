@@ -10,5 +10,5 @@ ExternalProject_Add(
 )
 
  ExternalProject_Get_Property(rapidjson source_dir)
-set(rapidjson_source_dir ${source_dir}/include)
+set(rapidjson_include_dir ${source_dir}/include)
  

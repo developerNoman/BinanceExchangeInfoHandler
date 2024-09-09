@@ -18,12 +18,7 @@
 #include <thread>
 #include <iostream>
 #include <fstream>
-
-extern std::string logLevel;
-extern bool logToFile, logToConsole;
-extern std::string spotBase, usdtFutureBase, coinFutureBase;
-extern std::string spotTarget, usdtFutureTarget, coinFutureTarget;
-extern int request_interval;
+#include <utils.h>
 
 void load_root_certificates(ssl::context &ctx);
 
@@ -32,7 +27,7 @@ void load_root_certificates(ssl::context &ctx);
 class processEndpoints
 {
 public:
-    void readConfig(const std::string &, rapidjson::Document &);
+    void readConfig(const std::string &, rapidjson::Document &, utils &);
     void fetchEndpoints(const boost::system::error_code &, boost::asio::steady_timer *, boost::asio::io_context &, boost::asio::ssl::context &);
 };
 
