@@ -64,18 +64,6 @@ void processResponse::processQueries(const rapidjson::Document &doc)
 
     rapidjson::Value resultArray(rapidjson::kArrayType);
 
-    ifstream ifs("answers.json");
-    if (ifs.is_open())
-    {
-        rapidjson::IStreamWrapper isw(ifs);
-        resultDoc.ParseStream(isw);
-        if (resultDoc.HasMember("results") && resultDoc["results"].IsArray())
-        {
-            resultArray = resultDoc["results"];
-        }
-        ifs.close();
-    }
-
     const rapidjson::Value &queries = doc["query"];
     int length = queries.Size();
 
