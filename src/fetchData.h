@@ -3,6 +3,7 @@
 
 #include "marketInfo.h"
 #include <chrono>
+#include <utils.h>
 
 namespace net = boost::asio;
 
@@ -19,8 +20,10 @@ public:
     explicit session(net::any_io_executor ex, ssl::context &ctx)
         : resolver_(ex), stream_(ex, ctx) {}
 
-    void fail(beast::error_code ec, char const *what);
     void run(const char *host, const char *port, const char *target, int version);
+
+private:
+    void fail(beast::error_code ec, char const *what);
     void onResolve(beast::error_code ec, tcp::resolver::results_type results);
     void onConnect(beast::error_code ec, tcp::resolver::results_type::endpoint_type);
     void onHandshake(beast::error_code ec);
@@ -34,7 +37,7 @@ class processEndpoints
 {
 public:
     void parseSymbols(std::string &, const std::string &, exchangeSymbols &);
-    void readConfig(const std::string &, rapidjson::Document &);
+    void readConfig(const std::string &, rapidjson::Document &, utils &);
     void fetchData(const std::string &, const std::string &, net::io_context &, ssl::context &);
     void fetchSpotData(net::io_context &, ssl::context &);
     void fetchUsdFutureData(net::io_context &, ssl::context &);

@@ -1,9 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(unitTests)
 
-
 find_package(gtest REQUIRED)
-
 
 add_executable(${PROJECT_NAME} unitTest.cpp)
 

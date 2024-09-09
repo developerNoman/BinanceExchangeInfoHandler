@@ -9,6 +9,21 @@ string logLevel, spotBase, usdtFutureBase, coinFutureBase;
 string spotTarget, usdtFutureTarget, coinFutureTarget;
 int request_interval;
 
+void exchangeSymbols::setSpotSymbol(const std::string &symbol, const MarketInfo &info)
+{
+    spotSymbols_[symbol] = info;
+}
+
+void exchangeSymbols::setUsdSymbol(const std::string &symbol, const MarketInfo &info)
+{
+    usdSymbols_[symbol] = info;
+}
+
+void exchangeSymbols::setCoinSymbol(const std::string &symbol, const MarketInfo &info)
+{
+    coinSymbols_[symbol] = info;
+}
+
 void processEndpoints::parseSymbols(string &responseBody, const string &base, exchangeSymbols &exchangeData)
 {
     if (responseBody.empty())
@@ -231,11 +246,13 @@ void session::onShutdown(beast::error_code ec)
         ec.assign(0, ec.category());
     }
     if (ec)
+    {
         return fail(ec, "shutdown");
+    }
 }
 
 // Read the config.json file and store values in variables
-void processEndpoints::readConfig(const string &configFile, rapidjson::Document &doc)
+void processEndpoints::readConfig(const string &configFile, rapidjson::Document &doc, utils &utilsInfo)
 {
     FILE *fp = fopen(configFile.c_str(), "r");
     if (!fp)
@@ -258,6 +275,17 @@ void processEndpoints::readConfig(const string &configFile, rapidjson::Document 
     usdtFutureTarget = doc["exchange_endpoints"]["usdtFutureTarget"].GetString();
     coinFutureTarget = doc["exchange_endpoints"]["coinFutureTarget"].GetString();
     request_interval = doc["request_interval"].GetInt();
+
+    utilsInfo.logToFile = doc["logging"]["file"].GetBool();
+    utilsInfo.logToConsole = doc["logging"]["console"].GetBool();
+    utilsInfo.logLevel = doc["logging"]["level"].GetString();
+    utilsInfo.spotBase = doc["exchange_base_url"]["spotBase"].GetString();
+    utilsInfo.usdtFutureBase = doc["exchange_base_url"]["usdtFutureBase"].GetString();
+    utilsInfo.coinFutureBase = doc["exchange_base_url"]["coinFutureBase"].GetString();
+    utilsInfo.spotTarget = doc["exchange_endpoints"]["spotTarget"].GetString();
+    utilsInfo.usdtFutureTarget = doc["exchange_endpoints"]["usdtFutureTarget"].GetString();
+    utilsInfo.coinFutureTarget = doc["exchange_endpoints"]["coinFutureTarget"].GetString();
+    utilsInfo.request_interval = doc["request_interval"].GetInt();
 
     fclose(fp);
 }

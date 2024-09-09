@@ -13,13 +13,13 @@
 #include <chrono>
 #include <string>
 #include <map>
+#include <utils.h>
 
 namespace net = boost::asio;
 using namespace std;
 
-extern string spotBase, spotTarget;
-
 // object creations
+utils utilsInfo;
 processEndpoints pe;
 processResponse pr;
 
@@ -42,7 +42,7 @@ static void BenchMark_ReadConfig(benchmark::State &state)
     std::string configFile = "config.json";
     for (auto _ : state)
     {
-        pe.readConfig(configFile, doc);
+        pe.readConfig(configFile, doc, utilsInfo);
     }
 }
 BENCHMARK(BenchMark_ReadConfig);
@@ -56,7 +56,7 @@ static void BenchMark_FetchData(benchmark::State &state)
     ctx.set_verify_mode(ssl::verify_peer);
     for (auto _ : state)
     {
-        pe.fetchData(spotBase, spotTarget, ioc, ctx);
+        pe.fetchData(utilsInfo.spotBase, utilsInfo.spotTarget, ioc, ctx);
         ioc.run();
     }
 }
