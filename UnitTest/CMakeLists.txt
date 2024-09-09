@@ -12,5 +12,4 @@ add_executable(${PROJECT_NAME} unitTest.cpp)
 
 add_dependencies(${PROJECT_NAME} gtest boost rapidjson spdlog)
 
-target_link_libraries(${PROJECT_NAME} ${binary_dir}/lib/libgtest.a ${binary_dir}/lib/libgtest_main.a pthread exchangeLibrary)
-
+target_link_libraries(${PROJECT_NAME} ${binary_dir}/lib/libgtest.a pthread exchangeLibrary)

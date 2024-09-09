@@ -110,3 +110,9 @@ TEST(ParseSymbolsTest, InvalidJSON)
     pe.parseSymbols(invalidJSON, "spot", exchangeData);
     EXPECT_TRUE(exchangeData.getSpotSymbols().empty());
 }
+
+int main(int argc, char **argv)
+{
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}
