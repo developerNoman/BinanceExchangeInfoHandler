@@ -17,8 +17,8 @@ void processEndpoints::parseSymbols(string &responseBody, const string &base, ex
         return;
     }
 
-    rapidjson::Document fullData;
-    rapidjson::ParseResult parseResult = fullData.Parse(responseBody.c_str());
+    rapidjson::Document doc;
+    rapidjson::ParseResult parseResult = doc.Parse(responseBody.c_str());
 
     if (!parseResult)
     {
@@ -28,14 +28,14 @@ void processEndpoints::parseSymbols(string &responseBody, const string &base, ex
         return;
     }
 
-    if (!fullData.IsObject() || !fullData.HasMember("symbols") || !fullData["symbols"].IsArray())
+    if (!doc.IsObject() || !doc.HasMember("symbols") || !doc["symbols"].IsArray())
     {
         spdlog::error("Invalid JSON format or missing 'symbols' array.");
         spdlog::debug("Response Body: {}", responseBody);
         return;
     }
 
-    const auto &symbolsArray = fullData["symbols"];
+    const auto &symbolsArray = doc["symbols"];
     for (const auto &symbol : symbolsArray.GetArray())
     {
         MarketInfo info;

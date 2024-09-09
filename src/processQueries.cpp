@@ -31,7 +31,7 @@ void exchangeSymbols::removeCoinSymbol(const string &instrumentName)
 }
 
 // function to display the marketData in logs and the answers.json file
-void processResponse::display(const std::string &marketType, const std::string &instrumentName, const MarketInfo &marketInfo, rapidjson::Value &resultObj, rapidjson::Document::AllocatorType &allocator)
+void processResponse::display(const string &marketType, const string &instrumentName, const MarketInfo &marketInfo, rapidjson::Value &resultObj, rapidjson::Document::AllocatorType &allocator)
 {
 
     resultObj.AddMember("quote_asset", rapidjson::Value(marketInfo.quoteAsset.c_str(), allocator), allocator);
@@ -64,7 +64,7 @@ void processResponse::processQueries(const rapidjson::Document &doc)
 
     rapidjson::Value resultArray(rapidjson::kArrayType);
 
-    std::ifstream ifs("answers.json");
+    ifstream ifs("answers.json");
     if (ifs.is_open())
     {
         rapidjson::IStreamWrapper isw(ifs);
@@ -91,7 +91,7 @@ void processResponse::processQueries(const rapidjson::Document &doc)
         }
 
         int queryID = query["id"].GetInt();
-        std::string marketType = query["market_type"].GetString();
+        string marketType = query["market_type"].GetString();
 
         if (idOccurrences[marketType][queryID] == 0)
         {
@@ -105,8 +105,8 @@ void processResponse::processQueries(const rapidjson::Document &doc)
 
         spdlog::debug("Processing query ID: {}, Market Type: {}", queryID, marketType);
 
-        std::string queryType = query["query_type"].GetString();
-        std::string instrumentName = query["instrument_name"].GetString();
+        string queryType = query["query_type"].GetString();
+        string instrumentName = query["instrument_name"].GetString();
 
         rapidjson::Value resultObj(rapidjson::kObjectType);
         resultObj.AddMember("instrument_name", rapidjson::Value(instrumentName.c_str(), allocator), allocator);
@@ -158,7 +158,7 @@ void processResponse::processQueries(const rapidjson::Document &doc)
         }
         else if (queryType == "UPDATE")
         {
-            std::string newStatus = query["data"]["status"].GetString();
+            string newStatus = query["data"]["status"].GetString();
             MarketInfo updatedInfo;
 
             if (marketType == "SPOT")
@@ -260,7 +260,7 @@ void processResponse::processQueries(const rapidjson::Document &doc)
         return;
     }
 
-    std::ofstream ofs("answers.json", std::ios::out | std::ios::trunc);
+    ofstream ofs("answers.json", ios::out | ios::app);
     if (!ofs.is_open())
     {
         spdlog::error("Failed to open answers.json for writing!");
