@@ -1,9 +1,8 @@
 #ifndef FETCHDATA_H
 #define FETCHDATA_H
 
-#include "marketInfo.h"
-#include <chrono>
 #include <utils.h>
+#include "exchangeSymbols.h"
 
 namespace net = boost::asio;
 

@@ -1,8 +1,8 @@
 #ifndef PROCESSQUERIES_H
 #define PROCESSQUERIES_H
 
-#include "marketInfo.h"
 #include <vector>
+#include "exchangeSymbols.h"
 #include <mutex>
 
 class processResponse

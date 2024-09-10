@@ -1,6 +1,7 @@
-#include "marketInfo.h"
+#include "exchangeSymbols.h"
 #include "processQueries.h"
 #include "fetchData.h"
+#include "spdlog/spdlog.h"
 #include "gtest/gtest.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"

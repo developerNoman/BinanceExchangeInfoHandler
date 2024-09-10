@@ -1,5 +1,21 @@
 
 #include "fetchData.h"
+#include <chrono>
+#include "rapidjson/filereadstream.h"
+#include "spdlog/spdlog.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/istreamwrapper.h"
+#include "rapidjson/ostreamwrapper.h"
+#include "boost/asio/strand.hpp"
+#include "boost/asio/steady_timer.hpp"
+#include "boost/bind/bind.hpp"
+#include <cstdio>
+#include <fstream>
+#include <memory>
+#include <map>
+#include <iostream>
+#include <string>
 
 using namespace std;
 
@@ -37,8 +53,8 @@ void processEndpoints::parseSymbols(string &responseBody, const string &base, ex
 
     if (!parseResult)
     {
-        cerr << "JSON parse error: " << rapidjson::GetParseError_En(parseResult.Code())
-             << " (offset " << parseResult.Offset() << ")" << endl;
+        spdlog::error("JSON parse error: {} (offset {})", rapidjson::GetParseError_En(parseResult.Code()), parseResult.Offset());
+
         spdlog::debug("Response Body: {}", responseBody);
         return;
     }

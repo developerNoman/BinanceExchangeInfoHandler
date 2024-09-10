@@ -5,19 +5,11 @@
 #include "rapidjson/filereadstream.h"
 #include "boost/asio.hpp"
 #include "boost/asio/steady_timer.hpp"
-#include "boost/bind/bind.hpp"
-#include "spdlog/spdlog.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/istreamwrapper.h"
 #include "rapidjson/ostreamwrapper.h"
-#include "spdlog/sinks/basic_file_sink.h"
-#include "spdlog/sinks/stdout_color_sinks.h"
-#include "spdlog/sinks/ostream_sink.h"
-#include <thread>
-#include <iostream>
-#include <fstream>
 #include <utils.h>
 
 void load_root_certificates(ssl::context &ctx);

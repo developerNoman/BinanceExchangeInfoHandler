@@ -2,22 +2,13 @@
 #define MARKETINFO_H
 
 #include "example/common/root_certificates.hpp"
+#include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
 #include "boost/asio.hpp"
-#include "rapidjson/document.h"
-#include "rapidjson/filereadstream.h"
-#include "spdlog/spdlog.h"
-#include "rapidjson/writer.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/istreamwrapper.h"
-#include "rapidjson/ostreamwrapper.h"
 #include "boost/beast/core.hpp"
 #include "boost/beast/http.hpp"
 #include "boost/beast/version.hpp"
 #include "boost/asio/ssl.hpp"
-#include "boost/asio/strand.hpp"
-#include "boost/asio/steady_timer.hpp"
-#include "boost/bind/bind.hpp"
 #include <cstdio>
 #include <fstream>
 #include <memory>
