@@ -19,12 +19,6 @@
 
 using namespace std;
 
-exchangeSymbols exchangeData;
-bool logToFile, logToConsole;
-string logLevel, spotBase, usdtFutureBase, coinFutureBase;
-string spotTarget, usdtFutureTarget, coinFutureTarget;
-int request_interval;
-
 void exchangeSymbols::setSpotSymbol(const std::string &symbol, const MarketInfo &info)
 {
     spotSymbols_[symbol] = info;
@@ -39,6 +33,9 @@ void exchangeSymbols::setCoinSymbol(const std::string &symbol, const MarketInfo 
 {
     coinSymbols_[symbol] = info;
 }
+exchangeSymbols exchangeData;
+
+string spotBase, usdtFutureBase, coinFutureBase;
 
 void processEndpoints::parseSymbols(string &responseBody, const string &base, exchangeSymbols &exchangeData)
 {
@@ -266,6 +263,10 @@ void session::onShutdown(beast::error_code ec)
         return fail(ec, "shutdown");
     }
 }
+bool logToFile, logToConsole;
+
+string logLevel, spotTarget, usdtFutureTarget, coinFutureTarget;
+int request_interval;
 
 // Read the config.json file and store values in variables
 void processEndpoints::readConfig(const string &configFile, rapidjson::Document &doc, utils &utilsInfo)

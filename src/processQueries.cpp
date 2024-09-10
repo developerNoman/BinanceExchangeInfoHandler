@@ -17,8 +17,6 @@ using namespace std;
 
 mutex myMutex;
 
-exchangeSymbols exchangedData;
-
 const map<string, MarketInfo> &exchangeSymbols::getSpotSymbols() const
 {
     return spotSymbols_;
@@ -147,6 +145,7 @@ void processResponse::processQueries(const rapidjson::Document &doc)
         resultObj.AddMember("market_type", rapidjson::Value(marketType.c_str(), allocator), allocator);
 
         MarketInfo marketInfo;
+        exchangeSymbols exchangedData;
 
         if (queryType == "GET")
         {

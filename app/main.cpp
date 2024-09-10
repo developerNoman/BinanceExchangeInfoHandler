@@ -22,7 +22,6 @@ int main()
     spdlog::debug("Configuration loaded: spotBase={}, usdtFutureBase={}, coinFutureBase={}", utilsInfo.spotBase, utilsInfo.usdtFutureBase, utilsInfo.coinFutureBase);
 
     vector<spdlog::sink_ptr> sinkData;
-    cout << utilsInfo.logToConsole << endl;
     if (utilsInfo.logToConsole)
     {
         auto console_sink = make_shared<spdlog::sinks::stdout_color_sink_mt>();
